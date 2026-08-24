@@ -33,7 +33,7 @@ const styles = `
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
     color: white;
   }
@@ -43,45 +43,45 @@ const styles = `
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 30px;
-    padding: 35px 25px;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+    border-radius: 35px;
+    padding: 40px 30px;
+    width: 92%;
+    max-width: 450px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35);
     animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     box-sizing: border-box;
   }
 
   .title-icon {
-    font-size: 65px;
+    font-size: 70px;
     animation: float 3s ease-in-out infinite;
     margin-bottom: 15px;
     display: inline-block;
   }
 
   .main-title {
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 800;
     margin: 0 0 8px 0;
     text-shadow: 0 2px 10px rgba(0,0,0,0.3);
   }
 
   .sub-title {
-    font-size: 22px;
-    color: rgba(255,255,255,0.9);
+    font-size: 24px;
+    color: rgba(255,255,255,0.95);
     margin: 0 0 25px 0;
     font-weight: 600;
   }
 
   .custom-input {
     width: 100%;
-    padding: 20px;
+    padding: 22px;
     border-radius: 20px;
     border: 2px solid transparent;
     background: rgba(255, 255, 255, 0.95);
-    font-size: 32px;
+    font-size: 36px;
     text-align: center;
-    letter-spacing: 6px;
+    letter-spacing: 8px;
     font-weight: 800;
     color: #1756a9;
     margin-bottom: 25px;
@@ -101,9 +101,9 @@ const styles = `
     background: linear-gradient(135deg, #0ea5e9, #2563eb);
     color: white;
     border: none;
-    padding: 20px;
+    padding: 22px;
     border-radius: 20px;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -123,14 +123,14 @@ const styles = `
     background: white;
     color: #1756a9;
     border: none;
-    padding: 22px;
+    padding: 24px;
     border-radius: 20px;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    margin-bottom: 15px;
+    margin-bottom: 18px;
     font-family: 'Rubik', sans-serif;
   }
   .party-btn:hover {
@@ -215,7 +215,7 @@ export default function StudentView() {
 
         {!isJoined ? (
           <div className="glass-card">
-            <h3 style={{ textAlign: 'center', margin: '0 0 25px 0', fontSize: '26px', fontWeight: '800' }}>הצטרפו להצבעה</h3>
+            <h3 style={{ textAlign: 'center', margin: '0 0 25px 0', fontSize: '28px', fontWeight: '800' }}>הצטרפו להצבעה</h3>
             <form onSubmit={handleJoin}>
               <input
                 type="text"
@@ -231,28 +231,28 @@ export default function StudentView() {
             </form>
           </div>
         ) : (
-          <div style={{ width: '100%', maxWidth: '480px' }}>
+          <div style={{ width: '92%', maxWidth: '450px' }}>
             {!isRoundOpen ? (
               <div className="glass-card" style={{ textAlign: 'center', padding: '60px 25px' }}>
-                <div style={{ fontSize: '75px', marginBottom: '20px' }}>⏳</div>
-                <h3 className="pulse-text" style={{ margin: '0 0 15px 0', fontSize: '28px', fontWeight: '800' }}>
+                <div style={{ fontSize: '80px', marginBottom: '20px' }}>⏳</div>
+                <h3 className="pulse-text" style={{ margin: '0 0 15px 0', fontSize: '30px', fontWeight: '800' }}>
                   ממתינים לסבב ההצבעה...
                 </h3>
-                <p style={{ margin: 0, fontSize: '18px', opacity: 0.9 }}>המסך יתעדכן אוטומטית כשהמנחה יפתח את הקלפי.</p>
+                <p style={{ margin: 0, fontSize: '20px', opacity: 0.9 }}>המסך יתעדכן אוטומטית כשהמנחה יפתח את הקלפי.</p>
               </div>
             ) : hasVoted ? (
               <div className="glass-card" style={{ textAlign: 'center', padding: '60px 25px' }}>
-                <div style={{ fontSize: '85px', marginBottom: '20px', textShadow: '0 0 25px rgba(0,255,0,0.6)' }}>✅</div>
-                <h3 style={{ margin: '0 0 15px 0', fontSize: '30px', fontWeight: '800' }}>הצבעתך נקלטה!</h3>
-                <p style={{ margin: 0, fontSize: '20px', opacity: 0.9 }}>התוצאות יוצגו על המסך הראשי באולם.</p>
+                <div style={{ fontSize: '90px', marginBottom: '20px', textShadow: '0 0 25px rgba(0,255,0,0.6)' }}>✅</div>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '32px', fontWeight: '800' }}>הצבעתך נקלטה!</h3>
+                <p style={{ margin: 0, fontSize: '22px', opacity: 0.9 }}>התוצאות יוצגו על המסך הראשי באולם.</p>
               </div>
             ) : (
               <div className="glass-card">
                 <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '1px solid rgba(255,255,255,0.25)', paddingBottom: '18px' }}>
-                  <span style={{ background: 'rgba(255,255,255,0.25)', padding: '6px 18px', borderRadius: '20px', fontSize: '16px', fontWeight: 'bold' }}>
+                  <span style={{ background: 'rgba(255,255,255,0.25)', padding: '8px 20px', borderRadius: '20px', fontSize: '18px', fontWeight: 'bold' }}>
                     סבב {currentRound}
                   </span>
-                  <h3 style={{ margin: '18px 0 0 0', fontSize: '28px', fontWeight: '800' }}>למי תצביע/י?</h3>
+                  <h3 style={{ margin: '18px 0 0 0', fontSize: '30px', fontWeight: '800' }}>למי תצביע/י?</h3>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
