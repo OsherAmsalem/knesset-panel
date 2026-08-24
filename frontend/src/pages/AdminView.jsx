@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3001');
+const socket = io('https://knesset-backend.onrender.com');
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap');

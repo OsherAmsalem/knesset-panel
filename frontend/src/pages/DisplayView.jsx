@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Legend } from 'recharts';
 
-const socket = io('http://localhost:3001');
+const socket = io('https://knesset-backend.onrender.com');
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap');
