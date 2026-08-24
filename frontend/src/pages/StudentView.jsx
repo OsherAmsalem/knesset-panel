@@ -3,7 +3,6 @@ import { io } from 'socket.io-client';
 
 const socket = io('https://knesset-backend.onrender.com');
 
-// כאן אנחנו מזריקים את העיצוב המיוחד והאנימציות למסך הזה בלבד
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap');
 
@@ -33,58 +32,59 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* הוספנו את זה כדי למרכז לאורך */
-    padding: 20px 15px;
-    box-sizing: border-box; /* הוספנו את זה כדי שהפאדינג לא יחרוג מהמסך */
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
     color: white;
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 24px;
-    padding: 30px 25px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 30px;
+    padding: 35px 25px;
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
     animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     box-sizing: border-box;
   }
 
   .title-icon {
-    font-size: 50px;
+    font-size: 65px;
     animation: float 3s ease-in-out infinite;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     display: inline-block;
   }
 
   .main-title {
-    font-size: 28px;
+    font-size: 36px;
     font-weight: 800;
-    margin: 0 0 5px 0;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    margin: 0 0 8px 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
   }
 
   .sub-title {
-    font-size: 18px;
-    color: rgba(255,255,255,0.8);
-    margin: 0 0 20px 0;
+    font-size: 22px;
+    color: rgba(255,255,255,0.9);
+    margin: 0 0 25px 0;
+    font-weight: 600;
   }
 
   .custom-input {
     width: 100%;
-    padding: 16px;
-    border-radius: 16px;
+    padding: 20px;
+    border-radius: 20px;
     border: 2px solid transparent;
-    background: rgba(255, 255, 255, 0.9);
-    font-size: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    font-size: 32px;
     text-align: center;
-    letter-spacing: 4px;
+    letter-spacing: 6px;
     font-weight: 800;
     color: #1756a9;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     box-sizing: border-box;
     transition: all 0.3s ease;
     font-family: 'Rubik', sans-serif;
@@ -93,26 +93,26 @@ const styles = `
     outline: none;
     border: 2px solid #0ea5e9;
     background: #fff;
-    box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+    box-shadow: 0 0 25px rgba(14, 165, 233, 0.5);
   }
 
   .action-btn {
     width: 100%;
-    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
     color: white;
     border: none;
-    padding: 16px;
-    border-radius: 16px;
-    font-size: 22px;
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 26px;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
     font-family: 'Rubik', sans-serif;
   }
   .action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.7);
   }
   .action-btn:active {
     transform: translateY(2px) scale(0.97);
@@ -123,21 +123,19 @@ const styles = `
     background: white;
     color: #1756a9;
     border: none;
-    padding: 18px;
-    border-radius: 16px;
-    font-size: 20px;
+    padding: 22px;
+    border-radius: 20px;
+    font-size: 24px;
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    margin-bottom: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    margin-bottom: 15px;
     font-family: 'Rubik', sans-serif;
-    position: relative;
-    overflow: hidden;
   }
   .party-btn:hover {
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
     color: #0ea5e9;
   }
   .party-btn:active {
@@ -209,7 +207,7 @@ export default function StudentView() {
       <style>{styles}</style>
       <div className="student-app">
         
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '25px' }}>
           <div className="title-icon">🇮🇱</div>
           <h2 className="main-title">פאנל בחירות</h2>
           {schoolName && <h4 className="sub-title">{schoolName}</h4>}
@@ -217,7 +215,7 @@ export default function StudentView() {
 
         {!isJoined ? (
           <div className="glass-card">
-            <h3 style={{ textAlign: 'center', margin: '0 0 25px 0', fontSize: '22px' }}>הצטרפו להצבעה</h3>
+            <h3 style={{ textAlign: 'center', margin: '0 0 25px 0', fontSize: '26px', fontWeight: '800' }}>הצטרפו להצבעה</h3>
             <form onSubmit={handleJoin}>
               <input
                 type="text"
@@ -233,28 +231,28 @@ export default function StudentView() {
             </form>
           </div>
         ) : (
-          <div style={{ width: '100%', maxWidth: '400px' }}>
+          <div style={{ width: '100%', maxWidth: '480px' }}>
             {!isRoundOpen ? (
-              <div className="glass-card" style={{ textAlign: 'center', padding: '50px 20px' }}>
-                <div style={{ fontSize: '60px', marginBottom: '15px' }}>⏳</div>
-                <h3 className="pulse-text" style={{ margin: '0 0 10px 0', fontSize: '24px' }}>
+              <div className="glass-card" style={{ textAlign: 'center', padding: '60px 25px' }}>
+                <div style={{ fontSize: '75px', marginBottom: '20px' }}>⏳</div>
+                <h3 className="pulse-text" style={{ margin: '0 0 15px 0', fontSize: '28px', fontWeight: '800' }}>
                   ממתינים לסבב ההצבעה...
                 </h3>
-                <p style={{ margin: 0, opacity: 0.8 }}>המסך יתעדכן אוטומטית כשהמנחה יפתח את הקלפי.</p>
+                <p style={{ margin: 0, fontSize: '18px', opacity: 0.9 }}>המסך יתעדכן אוטומטית כשהמנחה יפתח את הקלפי.</p>
               </div>
             ) : hasVoted ? (
-              <div className="glass-card" style={{ textAlign: 'center', padding: '50px 20px' }}>
-                <div style={{ fontSize: '70px', marginBottom: '15px', textShadow: '0 0 20px rgba(0,255,0,0.5)' }}>✅</div>
-                <h3 style={{ margin: '0 0 10px 0', fontSize: '26px' }}>הצבעתך נקלטה!</h3>
-                <p style={{ margin: 0, opacity: 0.9, fontSize: '18px' }}>התוצאות יוצגו על המסך הראשי באולם.</p>
+              <div className="glass-card" style={{ textAlign: 'center', padding: '60px 25px' }}>
+                <div style={{ fontSize: '85px', marginBottom: '20px', textShadow: '0 0 25px rgba(0,255,0,0.6)' }}>✅</div>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '30px', fontWeight: '800' }}>הצבעתך נקלטה!</h3>
+                <p style={{ margin: 0, fontSize: '20px', opacity: 0.9 }}>התוצאות יוצגו על המסך הראשי באולם.</p>
               </div>
             ) : (
               <div className="glass-card">
-                <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '15px' }}>
-                  <span style={{ background: 'rgba(255,255,255,0.2)', padding: '5px 15px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                <div style={{ textAlign: 'center', marginBottom: '25px', borderBottom: '1px solid rgba(255,255,255,0.25)', paddingBottom: '18px' }}>
+                  <span style={{ background: 'rgba(255,255,255,0.25)', padding: '6px 18px', borderRadius: '20px', fontSize: '16px', fontWeight: 'bold' }}>
                     סבב {currentRound}
                   </span>
-                  <h3 style={{ margin: '15px 0 0 0', fontSize: '24px' }}>למי תצביע/י?</h3>
+                  <h3 style={{ margin: '18px 0 0 0', fontSize: '28px', fontWeight: '800' }}>למי תצביע/י?</h3>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -263,7 +261,7 @@ export default function StudentView() {
                       key={party}
                       onClick={() => handleVote(party)}
                       className="party-btn"
-                      style={{ animationDelay: `${index * 0.1}s` }} // אפקט כניסה מדורג
+                      style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       {party}
                     </button>
