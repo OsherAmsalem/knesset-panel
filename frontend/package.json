@@ -2,8 +2,9 @@
   "name": "knesset-frontend",
   "type": "module",
   "scripts": {
-    "dev": "vite"
-  },
+  "build": "vite build",
+  "dev": "vite"
+},
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
