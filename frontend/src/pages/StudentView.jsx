@@ -33,7 +33,9 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 30px 15px;
+    justify-content: center; /* הוספנו את זה כדי למרכז לאורך */
+    padding: 20px 15px;
+    box-sizing: border-box; /* הוספנו את זה כדי שהפאדינג לא יחרוג מהמסך */
     color: white;
   }
 
