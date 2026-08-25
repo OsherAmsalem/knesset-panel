@@ -21,7 +21,12 @@ const styles = `
   .admin-container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; z-index: 10; }
   h1 { text-align: center; color: #1756a9; font-size: 36px; margin-bottom: 30px; }
   
-  /* עיצוב הטאבים החדשים */
+  /* עיצוב מסך ההתחברות המאובטח */
+  .login-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+  .login-card { background: white; padding: 50px 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; position: relative; z-index: 10; }
+  .login-card h2 { border: none; margin-bottom: 10px; color: #1756a9; font-size: 32px; padding: 0; }
+  .login-card p { color: #64748b; margin-bottom: 30px; font-size: 18px; }
+
   .tabs { display: flex; margin-bottom: 30px; border-bottom: 2px solid #e1e8f0; }
   .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; font-size: 20px; font-weight: bold; color: #64748b; transition: 0.3s; }
   .tab.active { color: #1756a9; border-bottom: 4px solid #1756a9; }
@@ -29,8 +34,8 @@ const styles = `
 
   .form-group { margin-bottom: 25px; }
   label { display: block; font-weight: 600; margin-bottom: 10px; font-size: 18px; }
-  input[type="text"] { width: 100%; padding: 15px; border: 2px solid #e1e8f0; border-radius: 12px; font-size: 18px; box-sizing: border-box; font-family: 'Rubik', sans-serif; }
-  input[type="text"]:focus { outline: none; border-color: #0ea5e9; }
+  input[type="text"], input[type="password"] { width: 100%; padding: 15px; border: 2px solid #e1e8f0; border-radius: 12px; font-size: 18px; box-sizing: border-box; font-family: 'Rubik', sans-serif; }
+  input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: #0ea5e9; }
 
   .btn { background: #1756a9; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: 'Rubik', sans-serif; }
   .btn:hover { background: #0ea5e9; transform: translateY(-2px); }
@@ -69,8 +74,12 @@ const styles = `
 `;
 
 export default function AdminView() {
+  // אבטחה
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+
   const [isCreated, setIsCreated] = useState(false);
-  const [viewMode, setViewMode] = useState('create'); // 'create' או 'join'
+  const [viewMode, setViewMode] = useState('create');
   
   const [eventCode, setEventCode] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -116,6 +125,17 @@ export default function AdminView() {
       socket.off('participants_update');
     };
   }, []);
+
+  // פונקציית התחברות
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (passwordInput === '272026' || passwordInput === '122026') {
+      setIsAuthenticated(true);
+    } else {
+      alert('❌ שגיאה: הסיסמה שגויה! אין לך הרשאה להיכנס למערכת ניהול הפאנל.');
+      setPasswordInput('');
+    }
+  };
 
   const handleCreateEvent = (e) => {
     e.preventDefault();
@@ -164,6 +184,37 @@ export default function AdminView() {
     ));
   };
 
+  // מסך התחברות (יוצג אם המשתמש עדיין לא הזין סיסמה נכונה)
+  if (!isAuthenticated) {
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="admin-app">
+          <img src="/image_a4f483.png" alt="אקטיביטיז הפקות" className="company-logo" />
+          <div className="login-container">
+            <div className="login-card">
+              <h2>כניסת צוות 🔒</h2>
+              <p>הזן סיסמת מנחה או מנהל להמשך</p>
+              <form onSubmit={handleLogin}>
+                <input 
+                  type="password" 
+                  value={passwordInput} 
+                  onChange={e => setPasswordInput(e.target.value)} 
+                  placeholder="הזן סיסמה..."
+                  style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '24px' }}
+                />
+                <button type="submit" className="btn" style={{ width: '100%', marginTop: '20px' }}>
+                  היכנס למערכת
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // המסך הרגיל (יוצג רק לאחר התחברות מוצלחת)
   return (
     <>
       <style>{styles}</style>
