@@ -4,8 +4,13 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
-// 1. חיבור למסד הנתונים בפיירבייס
+// בדיקה האם משתנה הסביבה קיים
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  console.error("ERROR: FIREBASE_SERVICE_ACCOUNT is missing in Render environment variables!");
+}
+
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://knessetpanel-default-rtdb.firebaseio.com"
