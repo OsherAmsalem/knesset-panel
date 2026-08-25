@@ -15,9 +15,17 @@ const ROUND_TITLES = {
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap');
 
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
   .display-app {
     min-height: 100vh;
-    background: #0a192f;
+    background: linear-gradient(-45deg, #0a2342, #1756a9, #3b82f6, #0ea5e9);
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
     color: white;
     font-family: 'Rubik', sans-serif;
     direction: rtl;
@@ -38,32 +46,32 @@ const styles = `
   }
 
   .join-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; margin-top: 100px; }
-  .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 50px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+  .glass-card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 50px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
   
   .custom-input { width: 100%; padding: 18px; border-radius: 12px; border: none; font-size: 28px; text-align: center; margin-bottom: 25px; font-family: 'Rubik', sans-serif; font-weight: bold; box-sizing: border-box; color: #0a192f; letter-spacing: 4px; }
   .action-btn { width: 100%; padding: 18px; border-radius: 12px; border: none; background: #38bdf8; color: #0a192f; font-size: 26px; font-weight: bold; cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s; }
   .action-btn:hover { background: #0ea5e9; color: white; transform: translateY(-2px); }
 
-  .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-  h1 { font-size: 60px; margin: 0 0 10px 0; color: #38bdf8; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3); }
-  h2 { font-size: 36px; margin: 0; color: #94a3b8; }
-  .phase-title { font-size: 48px; color: #f8fafc; margin-bottom: 30px; text-align: center; font-weight: 800; }
+  .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 20px; }
+  h1 { font-size: 60px; margin: 0 0 10px 0; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  h2 { font-size: 36px; margin: 0; color: #e2e8f0; text-shadow: 0 1px 5px rgba(0,0,0,0.2); }
+  .phase-title { font-size: 48px; color: #ffffff; margin-bottom: 30px; text-align: center; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-  .bar-row { display: flex; align-items: center; margin-bottom: 25px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; }
-  .bar-label { width: 250px; font-size: 28px; font-weight: bold; padding-left: 20px; }
-  .bar-track { flex-grow: 1; background: rgba(255,255,255,0.1); height: 50px; border-radius: 25px; position: relative; overflow: hidden; }
-  .bar-fill { height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 1s; border-radius: 25px; }
-  .bar-value { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+  .bar-row { display: flex; align-items: center; margin-bottom: 25px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  .bar-label { width: 250px; font-size: 28px; font-weight: bold; padding-left: 20px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+  .bar-track { flex-grow: 1; background: rgba(255,255,255,0.15); height: 50px; border-radius: 25px; position: relative; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #bae6fd); transition: width 1s; border-radius: 25px; box-shadow: 0 0 15px rgba(56,189,248,0.6); }
+  .bar-value { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: bold; color: #0f172a; text-shadow: none; }
 
   .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
-  .summary-box { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
-  .summary-box h3 { font-size: 26px; color: #38bdf8; margin: 0 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; text-align: center; }
+  .summary-box { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+  .summary-box h3 { font-size: 26px; color: #ffffff; margin: 0 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
   
   .mini-bar-row { margin-bottom: 15px; }
-  .mini-bar-label { font-size: 20px; margin-bottom: 5px; }
-  .mini-bar-track { background: rgba(255,255,255,0.1); height: 30px; border-radius: 15px; position: relative; overflow: hidden; }
+  .mini-bar-label { font-size: 20px; margin-bottom: 5px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+  .mini-bar-track { background: rgba(255,255,255,0.15); height: 30px; border-radius: 15px; position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
   .mini-bar-fill { height: 100%; background: #38bdf8; border-radius: 15px; transition: width 1s; }
-  .mini-bar-value { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; }
+  .mini-bar-value { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #0f172a; }
 `;
 
 export default function DisplayView() {
@@ -178,7 +186,7 @@ export default function DisplayView() {
           <div>
             <div className="phase-title">
               סבב {phase.replace('round', '')}: {ROUND_TITLES[phase.replace('round', '')]}
-              <br/><span style={{ fontSize: '30px', color: '#94a3b8' }}>מי מהנציגים ניצח בסבב הזה?</span>
+              <br/><span style={{ fontSize: '30px', color: '#e2e8f0' }}>מי מהנציגים ניצח בסבב הזה?</span>
             </div>
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
               {renderBigChart(rounds[phase.replace('round', '')]?.results)}
