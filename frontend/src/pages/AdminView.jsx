@@ -79,7 +79,7 @@ export default function AdminView() {
   const [repsInput, setRepsInput] = useState('');
   
   const [participants, setParticipants] = useState(0);
-  const [phase, setPhase] = useState('waiting'); // waiting, warmup, round1..6, summary
+  const [phase, setPhase] = useState('waiting'); 
 
   useEffect(() => {
     socket.on('live_results', (data) => {
@@ -182,7 +182,7 @@ export default function AdminView() {
               {[1, 2, 3, 4, 5, 6].map(num => (
                 <button 
                   key={num} 
-                  className={`btn btn-phase ${phase === 'round' + num ? 'active' : ''}`} 
+                  className={`btn btn-phase ${phase === `round${num}` ? 'active' : ''}`} 
                   onClick={() => changePhase(`round${num}`)}
                 >
                   סבב {num}: {ROUND_TITLES[num]}

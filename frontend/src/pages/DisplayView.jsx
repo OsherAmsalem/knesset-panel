@@ -26,126 +26,128 @@ const styles = `
     flex-direction: column;
   }
 
-  .header {
-    text-align: center;
-    margin-bottom: 40px;
-    border-bottom: 2px solid rgba(255,255,255,0.1);
-    padding-bottom: 20px;
+  /* עיצוב למסך ההתחברות החדש */
+  .join-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    margin-top: 100px;
   }
 
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 50px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+
+  .custom-input {
+    width: 100%; padding: 18px; border-radius: 12px; border: none;
+    font-size: 28px; text-align: center; margin-bottom: 25px;
+    font-family: 'Rubik', sans-serif; font-weight: bold;
+    box-sizing: border-box; color: #0a192f; letter-spacing: 4px;
+  }
+
+  .action-btn {
+    width: 100%; padding: 18px; border-radius: 12px; border: none;
+    background: #38bdf8; color: #0a192f; font-size: 26px; font-weight: bold;
+    cursor: pointer; font-family: 'Rubik', sans-serif; transition: all 0.2s;
+  }
+  .action-btn:hover { background: #0ea5e9; color: white; transform: translateY(-2px); }
+
+  /* שאר העיצוב לגרפים */
+  .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
   h1 { font-size: 60px; margin: 0 0 10px 0; color: #38bdf8; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3); }
   h2 { font-size: 36px; margin: 0; color: #94a3b8; }
   .phase-title { font-size: 48px; color: #f8fafc; margin-bottom: 30px; text-align: center; font-weight: 800; }
 
-  .bar-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 25px;
-    background: rgba(255,255,255,0.05);
-    padding: 15px;
-    border-radius: 15px;
-  }
+  .bar-row { display: flex; align-items: center; margin-bottom: 25px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; }
+  .bar-label { width: 250px; font-size: 28px; font-weight: bold; padding-left: 20px; }
+  .bar-track { flex-grow: 1; background: rgba(255,255,255,0.1); height: 50px; border-radius: 25px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 25px; box-shadow: 0 0 15px rgba(56,189,248,0.5); }
+  .bar-value { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-  .bar-label {
-    width: 250px;
-    font-size: 28px;
-    font-weight: bold;
-    padding-left: 20px;
-  }
-
-  .bar-track {
-    flex-grow: 1;
-    background: rgba(255,255,255,0.1);
-    height: 50px;
-    border-radius: 25px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #0284c7, #38bdf8);
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 25px;
-    box-shadow: 0 0 15px rgba(56,189,248,0.5);
-  }
-
-  .bar-value {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-  }
-
-  .summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-  }
-
-  .summary-box {
-    background: rgba(255,255,255,0.05);
-    padding: 30px;
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .summary-box { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
   .summary-box h3 { font-size: 28px; color: #38bdf8; margin: 0 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-
   .mini-bar-row { margin-bottom: 15px; }
   .mini-bar-label { font-size: 20px; margin-bottom: 5px; }
   .mini-bar-track { background: rgba(255,255,255,0.1); height: 30px; border-radius: 15px; position: relative; }
   .mini-bar-fill { height: 100%; background: #38bdf8; border-radius: 15px; transition: width 1s; }
   .mini-bar-value { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; }
-
-  .rating-box {
-    text-align: center;
-    padding: 20px;
-    background: rgba(56,189,248,0.1);
-    border-radius: 15px;
-    margin-top: 20px;
-  }
+  
+  .rating-box { text-align: center; padding: 20px; background: rgba(56,189,248,0.1); border-radius: 15px; margin-top: 20px; }
   .rating-number { font-size: 60px; font-weight: 800; color: #38bdf8; }
 
-  .global-stats {
-    margin-top: 40px;
-    padding: 30px;
-    background: linear-gradient(45deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.2));
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 20px;
-  }
+  .global-stats { margin-top: 40px; padding: 30px; background: linear-gradient(45deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; }
   .global-title { color: #34d399; font-size: 32px; margin-bottom: 20px; text-align: center; font-weight: 800; }
 `;
 
 export default function DisplayView() {
   const [eventData, setEventData] = useState(null);
+  const [inputCode, setInputCode] = useState('');
+  const [isJoined, setIsJoined] = useState(false);
 
   useEffect(() => {
-    // בקשה להצטרף כמסך מקרן (נניח שקוד האירוע מוזן כאן או נלקח מה-URL, לשם פשטות אפשר להאזין גלובלית אם זה רק מקרן אחד, או להוסיף מסך כניסה קטן. פה נניח שאנחנו מאזינים לכל שינוי)
-    // הערה: כדאי להוסיף מסך קטן שמבקש את קוד האירוע כמו בתלמיד, או לקחת אותו מה-URL. 
-    // לצורך הדוגמה הקודמת, אם היה לך פה קוד קבוע, תוסיף אותו.
-    
-    const code = prompt("הכנס את קוד האירוע להקרנה:");
-    if(code) {
-      socket.emit('join_event', { eventCode: code, role: 'display' });
-    }
-
-    socket.on('event_state', setEventData);
+    socket.on('event_state', (data) => {
+      setEventData(data);
+      setIsJoined(true);
+    });
     socket.on('phase_changed', setEventData);
     socket.on('live_results', setEventData);
+    socket.on('error_message', (msg) => alert(msg));
 
     return () => {
       socket.off('event_state');
       socket.off('phase_changed');
       socket.off('live_results');
+      socket.off('error_message');
     };
   }, []);
 
-  if (!eventData) return <div style={{ color: 'white', textAlign: 'center', marginTop: '100px', fontSize: '30px' }}>ממתין לחיבור... (רענן והכנס קוד אירוע)</div>;
+  const handleJoin = (e) => {
+    e.preventDefault();
+    if (inputCode.trim()) {
+      socket.emit('join_event', { eventCode: inputCode.trim(), role: 'display' });
+    }
+  };
+
+  // מסך ההתחברות המעוצב
+  if (!isJoined || !eventData) {
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="display-app">
+          <div className="header">
+            <h1>פאנל בחירות 🇮🇱</h1>
+            <h2>מסך מקרן ראשי</h2>
+          </div>
+          <div className="join-container">
+            <div className="glass-card">
+              <h3 style={{ fontSize: '32px', margin: '0 0 30px 0', color: 'white' }}>התחברות לאירוע</h3>
+              <form onSubmit={handleJoin}>
+                <input
+                  type="text"
+                  className="custom-input"
+                  placeholder="הזן קוד אירוע"
+                  value={inputCode}
+                  onChange={e => setInputCode(e.target.value)}
+                  autoComplete="off"
+                />
+                <button type="submit" className="action-btn">התחבר להקרנה</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   const { schoolName, phase, warmupResults, rounds, summaryResults, globalStats } = eventData;
 
@@ -167,7 +169,7 @@ export default function DisplayView() {
 
   const renderMiniChart = (dataObj) => {
     if(!dataObj || Object.keys(dataObj).length === 0) return <div style={{ opacity: 0.5 }}>אין נתונים עדיין</div>;
-    const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]).slice(0, 5); // מציג טופ 5
+    const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]).slice(0, 5); 
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
 
     return items.map(([name, votes]) => (
@@ -218,7 +220,6 @@ export default function DisplayView() {
         {phase === 'summary' && (
           <div>
             <div className="phase-title">תוצאות סיכום הפאנל ב{schoolName}</div>
-            
             <div className="summary-grid">
               <div className="summary-box">
                 <h3>המנצח של הפאנל (שאלה 1)</h3>
@@ -247,7 +248,6 @@ export default function DisplayView() {
               </div>
             </div>
 
-            {/* הקופה הראשית - ממוצע ארצי */}
             {globalStats && (
               <div className="global-stats">
                 <div className="global-title">🌍 הנתונים הארציים (מכל בתי הספר)</div>
