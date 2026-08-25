@@ -33,47 +33,9 @@ const styles = `
     100% { transform: scale(1); opacity: 1; }
   }
 
-  .student-app {
-    min-height: 100vh;
-    background: linear-gradient(-45deg, #0a2342, #1756a9, #3b82f6, #0ea5e9);
-    background-size: 400% 400%;
-    animation: gradientBG 12s ease infinite;
-    font-family: 'Rubik', sans-serif;
-    direction: rtl;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-    box-sizing: border-box;
-    color: white;
-    position: relative;
-  }
-
-  /* עיצוב הלוגו בפינה */
-  .company-logo {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    width: 60px;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
-    z-index: 100;
-  }
-
-  .glass-card {
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 35px;
-    padding: 40px 30px;
-    width: 92%;
-    max-width: 450px;
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35);
-    animation: popIn 0.6s ease-out forwards;
-    box-sizing: border-box;
-    margin-bottom: 20px;
-  }
+  .student-app { min-height: 100vh; background: linear-gradient(-45deg, #0a2342, #1756a9, #3b82f6, #0ea5e9); background-size: 400% 400%; animation: gradientBG 12s ease infinite; font-family: 'Rubik', sans-serif; direction: rtl; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; box-sizing: border-box; color: white; position: relative; }
+  .company-logo { position: absolute; top: 15px; left: 15px; width: 60px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); z-index: 100; }
+  .glass-card { background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 35px; padding: 40px 30px; width: 92%; max-width: 450px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.35); animation: popIn 0.6s ease-out forwards; box-sizing: border-box; margin-bottom: 20px; }
 
   .main-title { font-size: 40px; font-weight: 800; margin: 0 0 8px 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
   .custom-input { width: 100%; padding: 22px; border-radius: 20px; border: 2px solid transparent; background: rgba(255, 255, 255, 0.95); font-size: 36px; text-align: center; letter-spacing: 8px; font-weight: 800; color: #1756a9; margin-bottom: 25px; box-sizing: border-box; font-family: 'Rubik', sans-serif; }
@@ -91,10 +53,10 @@ export default function StudentView() {
   const [schoolName, setSchoolName] = useState('');
   const [representatives, setRepresentatives] = useState([]);
   const [phase, setPhase] = useState('waiting');
+  const [isVotingOpen, setIsVotingOpen] = useState(true); // קליטת מצב ההצבעה מהשרת
   
   const [votedPhases, setVotedPhases] = useState({});
   const [userId] = useState(() => 'user_' + Math.random().toString(36).substr(2, 9));
-
   const [summaryAnswers, setSummaryAnswers] = useState({ q1: '', q2: '', q3: '', q4: '', q5: '' });
 
   useEffect(() => {
@@ -102,6 +64,7 @@ export default function StudentView() {
       setSchoolName(data.schoolName);
       setRepresentatives(data.representatives || []);
       setPhase(data.phase);
+      setIsVotingOpen(data.isVotingOpen !== false);
       setIsJoined(true);
     };
 
@@ -159,9 +122,16 @@ export default function StudentView() {
           </div>
         ) : (
           <div style={{ width: '92%', maxWidth: '450px' }}>
-            {hasVotedCurrent ? ( renderStatusCard('✅', 'הצבעתך נקלטה!', 'המתן להמשך הפאנל...') ) : (
+            
+            {hasVotedCurrent ? (
+              renderStatusCard('✅', 'הצבעתך נקלטה!', 'המתן להמשך הפאנל...')
+            ) : phase === 'waiting' ? (
+              renderStatusCard('⏳', 'ממתינים שנתחיל', 'המסך יתעדכן אוטומטית כשהמנחה יפתח את הפאנל.')
+            ) : !isVotingOpen ? (
+              /* המסך החדש כשנועלים את ההצבעה */
+              renderStatusCard('⏸️', 'ההצבעה מושהית', 'המנחה עצר כרגע את ההצבעה, אנא המתן.')
+            ) : (
               <>
-                {phase === 'waiting' && renderStatusCard('⏳', 'ממתינים שנתחיל', 'המסך יתעדכן אוטומטית כשהמנחה יפתח את הפאנל.')}
                 {phase === 'warmup' && (
                   <div className="glass-card">
                     <h3 style={{ textAlign: 'center', fontSize: '30px', marginBottom: '25px' }}>שאלת חימום</h3>

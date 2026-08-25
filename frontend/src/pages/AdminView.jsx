@@ -21,7 +21,6 @@ const styles = `
   .admin-container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; z-index: 10; }
   h1 { text-align: center; color: #1756a9; font-size: 36px; margin-bottom: 30px; }
   
-  /* עיצוב מסך ההתחברות המאובטח */
   .login-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
   .login-card { background: white; padding: 50px 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; position: relative; z-index: 10; }
   .login-card h2 { border: none; margin-bottom: 10px; color: #1756a9; font-size: 32px; padding: 0; }
@@ -74,7 +73,6 @@ const styles = `
 `;
 
 export default function AdminView() {
-  // אבטחה
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
@@ -88,6 +86,7 @@ export default function AdminView() {
   
   const [participants, setParticipants] = useState(0);
   const [phase, setPhase] = useState('waiting'); 
+  const [isVotingOpen, setIsVotingOpen] = useState(true); // שמירת סטטוס נעילה
   const [summaryResults, setSummaryResults] = useState(null);
   const [globalStats, setGlobalStats] = useState(null);
 
@@ -104,6 +103,7 @@ export default function AdminView() {
     const handleDataUpdate = (data) => {
       setParticipants(data.participants);
       setPhase(data.phase);
+      setIsVotingOpen(data.isVotingOpen); // עדכון הסטטוס למנחה
       setSummaryResults(data.summaryResults);
       setGlobalStats(data.globalStats);
     };
@@ -126,7 +126,6 @@ export default function AdminView() {
     };
   }, []);
 
-  // פונקציית התחברות
   const handleLogin = (e) => {
     e.preventDefault();
     if (passwordInput === '272026' || passwordInput === '122026') {
@@ -160,6 +159,10 @@ export default function AdminView() {
     }
   };
 
+  const handleToggleVoting = () => {
+    socket.emit('toggle_voting', { eventCode });
+  };
+
   const handleResetGlobalStats = () => {
     if (window.confirm('⚠️ אזהרה: פעולה זו תאפס לחלוטין את כל הנתונים הארציים שנשמרו בשרת מכל ההצבעות עד כה. האם להמשיך?')) {
       socket.emit('reset_global_stats', { eventCode });
@@ -184,7 +187,6 @@ export default function AdminView() {
     ));
   };
 
-  // מסך התחברות (יוצג אם המשתמש עדיין לא הזין סיסמה נכונה)
   if (!isAuthenticated) {
     return (
       <>
@@ -196,16 +198,8 @@ export default function AdminView() {
               <h2>כניסת צוות 🔒</h2>
               <p>הזן סיסמת מנחה או מנהל להמשך</p>
               <form onSubmit={handleLogin}>
-                <input 
-                  type="password" 
-                  value={passwordInput} 
-                  onChange={e => setPasswordInput(e.target.value)} 
-                  placeholder="הזן סיסמה..."
-                  style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '24px' }}
-                />
-                <button type="submit" className="btn" style={{ width: '100%', marginTop: '20px' }}>
-                  היכנס למערכת
-                </button>
+                <input type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} placeholder="הזן סיסמה..." style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '24px' }} />
+                <button type="submit" className="btn" style={{ width: '100%', marginTop: '20px' }}>היכנס למערכת</button>
               </form>
             </div>
           </div>
@@ -214,7 +208,6 @@ export default function AdminView() {
     );
   }
 
-  // המסך הרגיל (יוצג רק לאחר התחברות מוצלחת)
   return (
     <>
       <style>{styles}</style>
@@ -226,12 +219,8 @@ export default function AdminView() {
           {!isCreated ? (
             <div>
               <div className="tabs">
-                <div className={`tab ${viewMode === 'create' ? 'active' : ''}`} onClick={() => setViewMode('create')}>
-                  ✨ יצירת פאנל חדש
-                </div>
-                <div className={`tab ${viewMode === 'join' ? 'active' : ''}`} onClick={() => setViewMode('join')}>
-                  🔑 התחברות כמנהל
-                </div>
+                <div className={`tab ${viewMode === 'create' ? 'active' : ''}`} onClick={() => setViewMode('create')}>✨ יצירת פאנל חדש</div>
+                <div className={`tab ${viewMode === 'join' ? 'active' : ''}`} onClick={() => setViewMode('join')}>🔑 התחברות כמנהל</div>
               </div>
 
               {viewMode === 'create' ? (
@@ -256,7 +245,6 @@ export default function AdminView() {
                   <div className="form-group">
                     <label>הזן קוד של אירוע פעיל:</label>
                     <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value)} placeholder="הכנס קוד אירוע" />
-                    <div className="help-text">* מיועד למנהלים ומפקחים שרוצים לראות את התוצאות מהצד בזמן אמת</div>
                   </div>
                   <button type="submit" className="btn btn-join" style={{ width: '100%' }}>התחבר כמנהל לאירוע</button>
                 </form>
@@ -286,6 +274,15 @@ export default function AdminView() {
               </div>
 
               <h2 style={{ marginTop: '40px' }}>שליטה בשלבי הפאנל</h2>
+
+              {/* הכפתור החדש לעצירת/פתיחת ההצבעה */}
+              <button 
+                onClick={handleToggleVoting} 
+                className="btn" 
+                style={{ width: '100%', marginBottom: '25px', background: isVotingOpen ? '#ef4444' : '#10b981' }}
+              >
+                {isVotingOpen ? '⏸️ חסום הצבעה לתלמידים (עצור כרגע)' : '▶️ פתח הצבעה מחדש'}
+              </button>
               
               <button className={`btn btn-phase ${phase === 'warmup' ? 'active' : ''}`} onClick={() => changePhase('warmup')}>🔥 הפעל שאלת חימום</button>
               
@@ -302,7 +299,6 @@ export default function AdminView() {
               {phase === 'summary' && summaryResults && (
                 <div className="private-dashboard">
                   <h3>🔒 דשבורד תוצאות חסוי (למנחה בלבד)</h3>
-                  <p style={{ textAlign: 'center', marginBottom: '20px', color: '#666' }}>הנתונים באזור זה אינם מוצגים על המקרן הראשי.</p>
                   
                   <div className="rating-grid">
                     <div className="rating-box">
@@ -344,7 +340,6 @@ export default function AdminView() {
                   </button>
                 </div>
               )}
-
             </div>
           )}
         </div>

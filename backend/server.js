@@ -8,11 +8,10 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// קופה ראשית - סטטיסטיקה גלובלית מכל בתי הספר
 const globalStats = {
-  parties: {}, // מפלגות מועדפות (שאלה 2)
-  opinionChange: { 'חיזק את דעתי': 0, 'החליש (ערער את דעתי)': 0, 'לא שינה את דעתי': 0 }, // שינוי דעה (שאלה 3)
-  panelRating: { sum: 0, count: 0 } // ממוצע דירוג הפאנלים מכל הארץ (שאלה 4)
+  parties: {}, 
+  opinionChange: { 'חיזק את דעתי': 0, 'החליש (ערער את דעתי)': 0, 'לא שינה את דעתי': 0 },
+  panelRating: { sum: 0, count: 0 } 
 };
 
 const events = {};
@@ -20,7 +19,6 @@ const events = {};
 io.on('connection', (socket) => {
   
   socket.on('create_event', ({ eventCode, schoolName, representatives }) => {
-    // בדיקה אם הקוד שהמנחה בחר כבר תפוס
     if (events[eventCode]) {
       return socket.emit('error_message', 'קוד אירוע זה כבר קיים במערכת. אנא בחר קוד אחר.');
     }
@@ -29,6 +27,7 @@ io.on('connection', (socket) => {
       schoolName,
       representatives,
       phase: 'waiting',
+      isVotingOpen: true, // המשתנה החדש ששולט על ההצבעה
       participants: 0,
       warmupResults: {},
       warmupVotes: {},
@@ -55,10 +54,9 @@ io.on('connection', (socket) => {
 
     socket.join(eventCode);
     socket.join(`${eventCode}_admin`);
-    socket.emit('admin_joined_success', eventCode); // שולח אישור שהיצירה הצליחה
+    socket.emit('admin_joined_success', eventCode); 
   });
 
-  // התחברות של מנהל נוסף לאירוע קיים
   socket.on('join_admin', ({ eventCode }) => {
     const event = events[eventCode];
     if (!event) return socket.emit('error_message', 'קוד אירוע לא נמצא. ודא שהאירוע נוצר.');
@@ -87,12 +85,24 @@ io.on('connection', (socket) => {
     const event = events[eventCode];
     if (!event) return;
     event.phase = phase;
+    event.isVotingOpen = true; // פתיחה אוטומטית של ההצבעה כשעוברים שלב
     io.to(eventCode).emit('phase_changed', getEventState(event));
+    updateAdminAndDisplay(eventCode, event);
+  });
+
+  // פונקציה חדשה לעצירה/פתיחה של ההצבעה
+  socket.on('toggle_voting', ({ eventCode }) => {
+    const event = events[eventCode];
+    if (!event) return;
+    event.isVotingOpen = !event.isVotingOpen;
+    io.to(eventCode).emit('event_state', getEventState(event)); // מעדכן את התלמידים
+    updateAdminAndDisplay(eventCode, event); // מעדכן את המנחה
   });
 
   socket.on('submit_warmup', ({ eventCode, userId, representative }) => {
     const event = events[eventCode];
-    if (!event || event.phase !== 'warmup' || event.warmupVotes[userId]) return;
+    // הוספנו בדיקה: אם ההצבעה סגורה, התעלם מהלחיצה
+    if (!event || event.phase !== 'warmup' || event.warmupVotes[userId] || !event.isVotingOpen) return;
     
     event.warmupVotes[userId] = representative;
     event.warmupResults[representative]++;
@@ -103,7 +113,7 @@ io.on('connection', (socket) => {
 
   socket.on('submit_round_vote', ({ eventCode, userId, roundId, representative }) => {
     const event = events[eventCode];
-    if (!event || event.phase !== `round${roundId}` || event.rounds[roundId].votes[userId]) return;
+    if (!event || event.phase !== `round${roundId}` || event.rounds[roundId].votes[userId] || !event.isVotingOpen) return;
 
     event.rounds[roundId].votes[userId] = representative;
     event.rounds[roundId].results[representative]++;
@@ -114,7 +124,7 @@ io.on('connection', (socket) => {
 
   socket.on('submit_summary', ({ eventCode, userId, answers }) => {
     const event = events[eventCode];
-    if (!event || event.phase !== 'summary' || event.summaryVotes[userId]) return;
+    if (!event || event.phase !== 'summary' || event.summaryVotes[userId] || !event.isVotingOpen) return;
 
     event.summaryVotes[userId] = true;
     const { q1, q2, q3, q4, q5 } = answers;
@@ -146,7 +156,6 @@ io.on('connection', (socket) => {
       updateAdminAndDisplay(eventCode, event);
     }
   });
-
 });
 
 function updateAdminAndDisplay(eventCode, event) {
@@ -158,6 +167,7 @@ function getEventState(event) {
     schoolName: event.schoolName,
     representatives: event.representatives,
     phase: event.phase,
+    isVotingOpen: event.isVotingOpen, // שליחת הסטטוס לקליינטים
     participants: event.participants,
     warmupResults: event.warmupResults,
     rounds: event.rounds,
