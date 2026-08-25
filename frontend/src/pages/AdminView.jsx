@@ -15,8 +15,19 @@ const ROUND_TITLES = {
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap');
 
-  .admin-app { min-height: 100vh; background: #f0f4f8; font-family: 'Rubik', sans-serif; direction: rtl; padding: 40px 20px; color: #333; }
-  .admin-container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+  .admin-app { min-height: 100vh; background: #f0f4f8; font-family: 'Rubik', sans-serif; direction: rtl; padding: 40px 20px; color: #333; position: relative; }
+  
+  /* עיצוב הלוגו בפינה */
+  .company-logo {
+    position: absolute;
+    top: 25px;
+    left: 30px;
+    width: 80px;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.15));
+    z-index: 100;
+  }
+
+  .admin-container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; z-index: 10; }
   h1 { text-align: center; color: #1756a9; font-size: 36px; margin-bottom: 30px; }
   h2 { color: #1756a9; margin-bottom: 20px; border-bottom: 2px solid #e1e8f0; padding-bottom: 10px; }
 
@@ -55,7 +66,6 @@ const styles = `
   .mini-bar-fill.green { background: #10b981; }
   .mini-bar-value { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; color: white; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
   
-  /* כפתור מחיקה חדש */
   .btn-reset { width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.2s; font-family: 'Rubik', sans-serif; }
   .btn-reset:hover { background: #dc2626; }
 `;
@@ -114,7 +124,6 @@ export default function AdminView() {
     }
   };
 
-  // פונקציית האיפוס החדשה
   const handleResetGlobalStats = () => {
     if (window.confirm('⚠️ אזהרה: פעולה זו תאפס לחלוטין את כל הנתונים הארציים שנשמרו בשרת מכל ההצבעות עד כה. האם להמשיך?')) {
       socket.emit('reset_global_stats', { eventCode });
@@ -143,6 +152,7 @@ export default function AdminView() {
     <>
       <style>{styles}</style>
       <div className="admin-app">
+        <img src="/image_a4f483.png" alt="אקטיביטיז הפקות" className="company-logo" />
         <div className="admin-container">
           <h1>מערכת ניהול פאנל בחירות <img src="https://flagcdn.com/il.svg" alt="Israel Flag" style={{ width: '45px', verticalAlign: 'middle', borderRadius: '2px', border: '1px solid #cbd5e1' }} /></h1>
 
@@ -195,7 +205,6 @@ export default function AdminView() {
                 📝 סיום פאנל - הפעל שאלון סיכום
               </button>
 
-              {/* הדשבורד החסוי */}
               {phase === 'summary' && summaryResults && (
                 <div className="private-dashboard">
                   <h3>🔒 דשבורד תוצאות חסוי (למנחה בלבד)</h3>
@@ -236,7 +245,6 @@ export default function AdminView() {
                     </div>
                   )}
 
-                  {/* כפתור האיפוס */}
                   <button className="btn-reset" onClick={handleResetGlobalStats}>
                     🗑️ איפוס נתונים ארציים (למחיקת טסטים)
                   </button>
