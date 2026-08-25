@@ -38,7 +38,6 @@ const styles = `
   .stat-number { font-size: 40px; font-weight: 800; color: #0ea5e9; }
   .help-text { font-size: 14px; color: #64748b; margin-top: 5px; }
 
-  /* עיצוב לדשבורד החסוי של המנחה */
   .private-dashboard { margin-top: 50px; padding: 30px; background: #fff; border: 2px dashed #f59e0b; border-radius: 20px; box-shadow: 0 5px 20px rgba(245, 158, 11, 0.15); }
   .private-dashboard h3 { color: #d97706; margin-top: 0; text-align: center; font-size: 28px; }
   
@@ -55,6 +54,10 @@ const styles = `
   .mini-bar-fill { height: 100%; background: #0ea5e9; transition: width 1s; }
   .mini-bar-fill.green { background: #10b981; }
   .mini-bar-value { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; color: white; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  
+  /* כפתור מחיקה חדש */
+  .btn-reset { width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.2s; font-family: 'Rubik', sans-serif; }
+  .btn-reset:hover { background: #dc2626; }
 `;
 
 export default function AdminView() {
@@ -66,7 +69,6 @@ export default function AdminView() {
   const [participants, setParticipants] = useState(0);
   const [phase, setPhase] = useState('waiting'); 
   
-  // נתונים חסויים למנחה
   const [summaryResults, setSummaryResults] = useState(null);
   const [globalStats, setGlobalStats] = useState(null);
 
@@ -109,6 +111,13 @@ export default function AdminView() {
     if (window.confirm('האם אתה בטוח שברצונך להעביר את כל התלמידים לשלב זה?')) {
       socket.emit('change_phase', { eventCode, phase: newPhase });
       setPhase(newPhase);
+    }
+  };
+
+  // פונקציית האיפוס החדשה
+  const handleResetGlobalStats = () => {
+    if (window.confirm('⚠️ אזהרה: פעולה זו תאפס לחלוטין את כל הנתונים הארציים שנשמרו בשרת מכל ההצבעות עד כה. האם להמשיך?')) {
+      socket.emit('reset_global_stats', { eventCode });
     }
   };
 
@@ -186,7 +195,7 @@ export default function AdminView() {
                 📝 סיום פאנל - הפעל שאלון סיכום
               </button>
 
-              {/* הדשבורד החסוי שמופיע רק בשלב הסיכום */}
+              {/* הדשבורד החסוי */}
               {phase === 'summary' && summaryResults && (
                 <div className="private-dashboard">
                   <h3>🔒 דשבורד תוצאות חסוי (למנחה בלבד)</h3>
@@ -209,11 +218,11 @@ export default function AdminView() {
                       
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         <div>
-                          <h4 style={{ color: '#059669', marginBottom: '10px' }}>מפלגות מועדפות - ארצי</h4>
+                          <h4 style={{ color: '#059669', margin: '0 0 10px 0' }}>מפלגות מועדפות - ארצי</h4>
                           {renderMiniChart(globalStats.parties, 'green')}
                         </div>
                         <div>
-                          <h4 style={{ color: '#059669', marginBottom: '10px' }}>שינוי דעה - ארצי</h4>
+                          <h4 style={{ color: '#059669', margin: '0 0 10px 0' }}>שינוי דעה - ארצי</h4>
                           {renderMiniChart(globalStats.opinionChange, 'green')}
                           
                           <div style={{ marginTop: '20px', padding: '15px', background: '#d1fae5', borderRadius: '10px', textAlign: 'center' }}>
@@ -226,6 +235,11 @@ export default function AdminView() {
                       </div>
                     </div>
                   )}
+
+                  {/* כפתור האיפוס */}
+                  <button className="btn-reset" onClick={handleResetGlobalStats}>
+                    🗑️ איפוס נתונים ארציים (למחיקת טסטים)
+                  </button>
                 </div>
               )}
 

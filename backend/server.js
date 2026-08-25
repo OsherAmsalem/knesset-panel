@@ -19,12 +19,11 @@ const events = {};
 
 io.on('connection', (socket) => {
   
-  // 1. יצירת אירוע ע"י מנחה
   socket.on('create_event', ({ eventCode, schoolName, representatives }) => {
     events[eventCode] = {
       schoolName,
-      representatives, // רשימת הח"כים שהמנחה הקליד
-      phase: 'waiting', // שלבים: waiting, warmup, round1...round6, summary
+      representatives,
+      phase: 'waiting',
       participants: 0,
       warmupResults: {},
       warmupVotes: {},
@@ -37,16 +36,11 @@ io.on('connection', (socket) => {
         6: { title: 'שיטת הממשל', votes: {}, results: {} }
       },
       summaryResults: {
-        q1: {}, // מי ניצח
-        q2: {}, // מפלגות
-        q3: {}, // שינוי דעה
-        q4: { sum: 0, count: 0 }, // דירוג פאנל
-        q5: { sum: 0, count: 0 }  // דירוג מנחה
+        q1: {}, q2: {}, q3: {}, q4: { sum: 0, count: 0 }, q5: { sum: 0, count: 0 }
       },
       summaryVotes: {}
     };
 
-    // אתחול מונים ל-0 לכל הנציגים
     representatives.forEach(rep => {
       events[eventCode].warmupResults[rep] = 0;
       for(let i=1; i<=6; i++) {
@@ -58,7 +52,6 @@ io.on('connection', (socket) => {
     socket.join(`${eventCode}_admin`);
   });
 
-  // 2. הצטרפות משתמשים
   socket.on('join_event', ({ eventCode, role }) => {
     const event = events[eventCode];
     if (!event) return socket.emit('error_message', 'קוד אירוע לא נמצא');
@@ -74,7 +67,6 @@ io.on('connection', (socket) => {
     socket.emit('event_state', getEventState(event));
   });
 
-  // 3. מנחה משנה שלב (חימום / סבבים / סיכום)
   socket.on('change_phase', ({ eventCode, phase }) => {
     const event = events[eventCode];
     if (!event) return;
@@ -82,7 +74,6 @@ io.on('connection', (socket) => {
     io.to(eventCode).emit('phase_changed', getEventState(event));
   });
 
-  // 4. קליטת הצבעת חימום מתלמיד
   socket.on('submit_warmup', ({ eventCode, userId, representative }) => {
     const event = events[eventCode];
     if (!event || event.phase !== 'warmup' || event.warmupVotes[userId]) return;
@@ -94,7 +85,6 @@ io.on('connection', (socket) => {
     socket.emit('vote_confirmed');
   });
 
-  // 5. קליטת הצבעה בסבב רגיל (1-6)
   socket.on('submit_round_vote', ({ eventCode, userId, roundId, representative }) => {
     const event = events[eventCode];
     if (!event || event.phase !== `round${roundId}` || event.rounds[roundId].votes[userId]) return;
@@ -106,7 +96,6 @@ io.on('connection', (socket) => {
     socket.emit('vote_confirmed');
   });
 
-  // 6. קליטת טופס סיכום מלא
   socket.on('submit_summary', ({ eventCode, userId, answers }) => {
     const event = events[eventCode];
     if (!event || event.phase !== 'summary' || event.summaryVotes[userId]) return;
@@ -114,7 +103,6 @@ io.on('connection', (socket) => {
     event.summaryVotes[userId] = true;
     const { q1, q2, q3, q4, q5 } = answers;
     
-    // עדכון תוצאות אירוע נוכחי
     if(q1) event.summaryResults.q1[q1] = (event.summaryResults.q1[q1] || 0) + 1;
     if(q2) event.summaryResults.q2[q2] = (event.summaryResults.q2[q2] || 0) + 1;
     if(q3) event.summaryResults.q3[q3] = (event.summaryResults.q3[q3] || 0) + 1;
@@ -123,7 +111,6 @@ io.on('connection', (socket) => {
     event.summaryResults.q5.sum += Number(q5);
     event.summaryResults.q5.count++;
 
-    // עדכון סטטיסטיקה גלובלית (ארצית)
     if(q2) globalStats.parties[q2] = (globalStats.parties[q2] || 0) + 1;
     if(q3) globalStats.opinionChange[q3] = (globalStats.opinionChange[q3] || 0) + 1;
     globalStats.panelRating.sum += Number(q4);
@@ -132,6 +119,19 @@ io.on('connection', (socket) => {
     updateAdminAndDisplay(eventCode, event);
     socket.emit('vote_confirmed');
   });
+
+  // פקודה חדשה: איפוס הנתונים הארציים
+  socket.on('reset_global_stats', ({ eventCode }) => {
+    globalStats.parties = {};
+    globalStats.opinionChange = { 'חיזק את דעתי': 0, 'החליש (ערער את דעתי)': 0, 'לא שינה את דעתי': 0 };
+    globalStats.panelRating = { sum: 0, count: 0 };
+    
+    const event = events[eventCode];
+    if (event) {
+      updateAdminAndDisplay(eventCode, event);
+    }
+  });
+
 });
 
 function updateAdminAndDisplay(eventCode, event) {
@@ -147,7 +147,7 @@ function getEventState(event) {
     warmupResults: event.warmupResults,
     rounds: event.rounds,
     summaryResults: event.summaryResults,
-    globalStats // שליחת הנתונים הארציים
+    globalStats
   };
 }
 
