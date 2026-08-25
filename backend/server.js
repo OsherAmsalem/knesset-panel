@@ -2,19 +2,47 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const admin = require('firebase-admin');
+
+// 1. חיבור למסד הנתונים בפיירבייס
+const serviceAccount = require('./firebase-key.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://knessetpanel-default-rtdb.firebaseio.com" // הכתובת שלך כבר כאן!
+});
+
+const db = admin.database();
+const eventsRef = db.ref('events');
+const globalStatsRef = db.ref('globalStats');
 
 const app = express();
 app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const globalStats = {
+// הזיכרון הזמני של השרת
+let globalStats = {
   parties: {}, 
   opinionChange: { 'חיזק את דעתי': 0, 'החליש (ערער את דעתי)': 0, 'לא שינה את דעתי': 0 },
   panelRating: { sum: 0, count: 0 } 
 };
+let events = {};
 
-const events = {};
+// 2. משיכת הנתונים מהענן ברגע שהשרת עולה (כדי לא לאבד נתונים מהעבר)
+globalStatsRef.once('value', (snapshot) => {
+  if (snapshot.exists()) globalStats = snapshot.val();
+});
+eventsRef.once('value', (snapshot) => {
+  if (snapshot.exists()) events = snapshot.val();
+});
+
+// פונקציות עזר לגיבוי מהיר לענן
+function saveEventToDB(eventCode) {
+  eventsRef.child(eventCode).set(events[eventCode]);
+}
+function saveGlobalStatsToDB() {
+  globalStatsRef.set(globalStats);
+}
 
 io.on('connection', (socket) => {
   
@@ -27,7 +55,7 @@ io.on('connection', (socket) => {
       schoolName,
       representatives,
       phase: 'waiting',
-      isVotingOpen: true, // המשתנה החדש ששולט על ההצבעה
+      isVotingOpen: true,
       participants: 0,
       warmupResults: {},
       warmupVotes: {},
@@ -52,6 +80,8 @@ io.on('connection', (socket) => {
       }
     });
 
+    saveEventToDB(eventCode); // גיבוי לענן
+
     socket.join(eventCode);
     socket.join(`${eventCode}_admin`);
     socket.emit('admin_joined_success', eventCode); 
@@ -73,6 +103,7 @@ io.on('connection', (socket) => {
     socket.join(eventCode);
     if (role === 'student') {
       event.participants++;
+      saveEventToDB(eventCode); // מעדכן בענן שיש משתתף חדש
       io.to(eventCode).emit('participants_update', event.participants);
     } else if (role === 'display') {
       socket.join(`${eventCode}_display`);
@@ -85,27 +116,30 @@ io.on('connection', (socket) => {
     const event = events[eventCode];
     if (!event) return;
     event.phase = phase;
-    event.isVotingOpen = true; // פתיחה אוטומטית של ההצבעה כשעוברים שלב
+    event.isVotingOpen = true; 
+    saveEventToDB(eventCode); // גיבוי לענן
+
     io.to(eventCode).emit('phase_changed', getEventState(event));
     updateAdminAndDisplay(eventCode, event);
   });
 
-  // פונקציה חדשה לעצירה/פתיחה של ההצבעה
   socket.on('toggle_voting', ({ eventCode }) => {
     const event = events[eventCode];
     if (!event) return;
     event.isVotingOpen = !event.isVotingOpen;
-    io.to(eventCode).emit('event_state', getEventState(event)); // מעדכן את התלמידים
-    updateAdminAndDisplay(eventCode, event); // מעדכן את המנחה
+    saveEventToDB(eventCode); // גיבוי לענן
+
+    io.to(eventCode).emit('event_state', getEventState(event));
+    updateAdminAndDisplay(eventCode, event); 
   });
 
   socket.on('submit_warmup', ({ eventCode, userId, representative }) => {
     const event = events[eventCode];
-    // הוספנו בדיקה: אם ההצבעה סגורה, התעלם מהלחיצה
     if (!event || event.phase !== 'warmup' || event.warmupVotes[userId] || !event.isVotingOpen) return;
     
     event.warmupVotes[userId] = representative;
     event.warmupResults[representative]++;
+    saveEventToDB(eventCode); // גיבוי לענן
     
     updateAdminAndDisplay(eventCode, event);
     socket.emit('vote_confirmed');
@@ -117,6 +151,7 @@ io.on('connection', (socket) => {
 
     event.rounds[roundId].votes[userId] = representative;
     event.rounds[roundId].results[representative]++;
+    saveEventToDB(eventCode); // גיבוי לענן
 
     updateAdminAndDisplay(eventCode, event);
     socket.emit('vote_confirmed');
@@ -142,6 +177,9 @@ io.on('connection', (socket) => {
     globalStats.panelRating.sum += Number(q4);
     globalStats.panelRating.count++;
 
+    saveEventToDB(eventCode); // גיבוי האירוע לענן
+    saveGlobalStatsToDB();    // גיבוי הקופה הראשית לענן
+
     updateAdminAndDisplay(eventCode, event);
     socket.emit('vote_confirmed');
   });
@@ -150,6 +188,8 @@ io.on('connection', (socket) => {
     globalStats.parties = {};
     globalStats.opinionChange = { 'חיזק את דעתי': 0, 'החליש (ערער את דעתי)': 0, 'לא שינה את דעתי': 0 };
     globalStats.panelRating = { sum: 0, count: 0 };
+    
+    saveGlobalStatsToDB(); // גיבוי האיפוס לענן
     
     const event = events[eventCode];
     if (event) {
@@ -167,7 +207,7 @@ function getEventState(event) {
     schoolName: event.schoolName,
     representatives: event.representatives,
     phase: event.phase,
-    isVotingOpen: event.isVotingOpen, // שליחת הסטטוס לקליינטים
+    isVotingOpen: event.isVotingOpen, 
     participants: event.participants,
     warmupResults: event.warmupResults,
     rounds: event.rounds,
