@@ -62,6 +62,7 @@ const styles = `
   .bar-track { flex-grow: 1; background: rgba(255,255,255,0.15); height: 50px; border-radius: 25px; position: relative; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
   .bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #bae6fd); transition: width 1s; border-radius: 25px; box-shadow: 0 0 15px rgba(56,189,248,0.6); }
   .bar-value { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: bold; color: #0f172a; text-shadow: none; }
+  .bar-percentage { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: bold; color: #0f172a; text-shadow: none; }
 
   .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
   .summary-box { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
@@ -72,6 +73,7 @@ const styles = `
   .mini-bar-track { background: rgba(255,255,255,0.15); height: 30px; border-radius: 15px; position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
   .mini-bar-fill { height: 100%; background: #38bdf8; border-radius: 15px; transition: width 1s; }
   .mini-bar-value { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #0f172a; }
+  .mini-bar-percentage { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; color: #0f172a; }
 `;
 
 export default function DisplayView() {
@@ -133,32 +135,48 @@ export default function DisplayView() {
     if(!dataObj) return null;
     const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]);
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
+    
+    // חישוב סך הכל הקולות כדי לגזור את האחוזים
+    const totalVotes = items.reduce((sum, item) => sum + item[1], 0);
 
-    return items.map(([name, votes]) => (
-      <div className="bar-row" key={name}>
-        <div className="bar-label">{name}</div>
-        <div className="bar-track">
-          <div className="bar-fill" style={{ width: `${(votes / maxVotes) * 100}%` }}></div>
-          <div className="bar-value">{votes} קולות</div>
+    return items.map(([name, votes]) => {
+      const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+      return (
+        <div className="bar-row" key={name}>
+          <div className="bar-label">{name}</div>
+          <div className="bar-track">
+            <div className="bar-fill" style={{ width: `${(votes / maxVotes) * 100}%` }}></div>
+            <div className="bar-percentage">{percentage}%</div>
+            <div className="bar-value">{votes} קולות</div>
+          </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   const renderMiniChart = (dataObj) => {
     if(!dataObj || Object.keys(dataObj).length === 0) return <div style={{ opacity: 0.5, textAlign: 'center' }}>אין נתונים עדיין</div>;
+    
+    // חישוב סך הכל הקולות (על כל האופציות, לא רק על הטופ 5)
+    const totalVotes = Object.values(dataObj).reduce((sum, val) => sum + val, 0);
+    
+    // חיתוך ל-5 המקומות הראשונים
     const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]).slice(0, 5); 
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
 
-    return items.map(([name, votes]) => (
-      <div className="mini-bar-row" key={name}>
-        <div className="mini-bar-label">{name}</div>
-        <div className="mini-bar-track">
-          <div className="mini-bar-fill" style={{ width: `${(votes / maxVotes) * 100}%` }}></div>
-          <div className="mini-bar-value">{votes}</div>
+    return items.map(([name, votes]) => {
+      const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+      return (
+        <div className="mini-bar-row" key={name}>
+          <div className="mini-bar-label">{name}</div>
+          <div className="mini-bar-track">
+            <div className="mini-bar-fill" style={{ width: `${(votes / maxVotes) * 100}%` }}></div>
+            <div className="mini-bar-percentage">{percentage}%</div>
+            <div className="mini-bar-value">{votes}</div>
+          </div>
         </div>
-      </div>
-    ));
+      );
+    });
   };
 
   return (
