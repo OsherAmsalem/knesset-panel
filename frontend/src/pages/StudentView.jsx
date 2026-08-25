@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 const socket = io('https://knesset-backend.onrender.com');
@@ -57,7 +57,12 @@ export default function StudentView() {
   
   const [votedPhases, setVotedPhases] = useState({});
   
-  // 1. אבטחה: יצירה ושמירה של תעודת זהות קבועה לדפדפן הזה
+  // תיקון טכני לשמירת השלב הנוכחי עבור השרת מבלי להתנתק
+  const phaseRef = useRef(phase);
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
+  
   const [userId] = useState(() => {
     let savedId = localStorage.getItem('knesset_userId');
     if (!savedId) {
@@ -69,13 +74,14 @@ export default function StudentView() {
 
   const [summaryAnswers, setSummaryAnswers] = useState({ q1: '', q2: '', q3: '', q4: '', q5: '' });
 
-  // 2. אבטחה: שמירה מקומית בכל פעם שהתלמיד מצביע בשלב מסוים
+  // תיקון הזיכרון: משתמשים ב-sessionStorage כדי שלא יזכור הצבעות ישנות מטסטים קודמים
   useEffect(() => {
     if (eventCode && Object.keys(votedPhases).length > 0) {
-      localStorage.setItem(`knesset_voted_${eventCode}`, JSON.stringify(votedPhases));
+      sessionStorage.setItem(`knesset_voted_${eventCode}`, JSON.stringify(votedPhases));
     }
   }, [votedPhases, eventCode]);
 
+  // תיקון הניתוקים: מערך תלויות ריק [] מבטיח שההאזנה לשרת יציבה ולא מתנתקת באמצע
   useEffect(() => {
     const handleStateUpdate = (data) => {
       setSchoolName(data.schoolName);
@@ -87,27 +93,37 @@ export default function StudentView() {
 
     socket.on('event_state', handleStateUpdate);
     socket.on('phase_changed', handleStateUpdate);
-    socket.on('vote_confirmed', () => setVotedPhases(prev => ({ ...prev, [phase]: true })));
+    socket.on('vote_confirmed', () => setVotedPhases(prev => ({ ...prev, [phaseRef.current]: true })));
     socket.on('error_message', (msg) => alert(msg));
 
-    return () => { socket.off('event_state'); socket.off('phase_changed'); socket.off('vote_confirmed'); socket.off('error_message'); };
-  }, [phase]);
+    return () => { 
+      socket.off('event_state', handleStateUpdate); 
+      socket.off('phase_changed', handleStateUpdate); 
+      socket.off('vote_confirmed'); 
+      socket.off('error_message'); 
+    };
+  }, []);
 
   const handleJoin = (e) => {
     e.preventDefault();
     const code = eventCode.trim();
     if (!code) return;
     
-    // 3. אבטחה: ברגע שהוא חוזר אחרי רענון, טוענים מהזיכרון את ההיסטוריה שלו
-    const savedVoted = localStorage.getItem(`knesset_voted_${code}`);
+    // קוראים מזיכרון זמני בלבד
+    const savedVoted = sessionStorage.getItem(`knesset_voted_${code}`);
     if (savedVoted) {
       setVotedPhases(JSON.parse(savedVoted));
     } else {
       setVotedPhases({});
     }
 
-    // משתמשים ב-userId הקבוע שנטען למעלה ושולחים לשרת
-    socket.emit('join_event', { eventCode: code, role: 'student', userId });  
+    let currentUserId = localStorage.getItem('student_user_id');
+    if (!currentUserId) {
+      currentUserId = 'user_' + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('student_user_id', currentUserId);
+    }
+
+    socket.emit('join_event', { eventCode: code, role: 'student', userId: currentUserId });  
   };
 
   const handleWarmupVote = (rep) => socket.emit('submit_warmup', { eventCode, userId, representative: rep });

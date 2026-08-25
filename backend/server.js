@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
       phase: 'waiting',
       isVotingOpen: true,
       participants: 0,
-      connectedStudents: new Set(), // כאן נשמור את המזהים הייחודיים של כל מכשיר
+      connectedStudents: new Set(), // שומר את המזהים הייחודיים של התלמידים
       warmupResults: {},
       warmupVotes: {},
       rounds: {
@@ -72,13 +72,13 @@ io.on('connection', (socket) => {
     if (!event) return socket.emit('error_message', 'קוד אירוע לא נמצא');
 
     socket.join(eventCode);
-    
     if (role === 'student') {
+      // נבדוק אם התלמיד הזה כבר נספר בעבר באירוע הזה (למשל עשה רענן)
       if (!event.connectedStudents) {
         event.connectedStudents = new Set();
       }
       
-      // התיקון למונה התלמידים: רק אם המכשיר לא נספר עדיין - נעלה את המונה
+      // אם זה תלמיד חדש לגמרי שלא היה ברשימה, נגדיל את המונה
       if (userId && !event.connectedStudents.has(userId)) {
         event.connectedStudents.add(userId);
         event.participants = event.connectedStudents.size;
