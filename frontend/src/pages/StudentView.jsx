@@ -16,7 +16,7 @@ const PARTIES_LIST = [
   'הליכוד', 'ישר', 'ביחד', 'הדמוקרטים', 'עוצמה יהודית',
   'הציונות הדתית', 'יהדות התורה', 'שס', 'רעמ',
   'הרשימה המשותפת', 'ישראל ביתנו', 'בית ציוני', 'כחול לבן',
-  'האחדות', 'זהות', 'ישראל תחילה', 'המפלגה של וינטר', 'רשימה אחרת'
+  'האחדות', 'זהות', 'ישראל תחילה', 'עמך ישראל', 'רשימה אחרת'
 ];
 
 const styles = `
@@ -105,12 +105,8 @@ export default function StudentView() {
     } else {
       setVotedPhases({});
     }
-    let userId = localStorage.getItem('student_user_id');
-    if (!userId) {
-      userId = 'user_' + Math.random().toString(36).substring(2, 9);
-      localStorage.setItem('student_user_id', userId);
-    }
 
+    // משתמשים ב-userId הקבוע שנטען למעלה ושולחים לשרת
     socket.emit('join_event', { eventCode: code, role: 'student', userId });  
   };
 
