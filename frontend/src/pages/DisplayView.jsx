@@ -90,7 +90,7 @@ export default function DisplayView() {
         <style>{styles}</style>
         <div className="display-app">
           <div className="header">
-            <h1>פאנל בחירות 🇮🇱</h1>
+            <h1>פאנל בחירות <img src="https://flagcdn.com/il.svg" alt="Israel Flag" style={{ width: '60px', verticalAlign: 'middle', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)' }} /></h1>
             <h2>מסך מקרן ראשי</h2>
           </div>
           <div className="join-container">
@@ -146,7 +146,7 @@ export default function DisplayView() {
       <style>{styles}</style>
       <div className="display-app">
         <div className="header">
-          <h1>פאנל בחירות 🇮🇱</h1>
+          <h1>פאנל בחירות <img src="https://flagcdn.com/il.svg" alt="Israel Flag" style={{ width: '60px', verticalAlign: 'middle', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)' }} /></h1>
           <h2>{schoolName}</h2>
         </div>
 

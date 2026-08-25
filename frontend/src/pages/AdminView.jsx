@@ -144,7 +144,7 @@ export default function AdminView() {
       <style>{styles}</style>
       <div className="admin-app">
         <div className="admin-container">
-          <h1>מערכת ניהול פאנל בחירות 🇮🇱</h1>
+          <h1>מערכת ניהול פאנל בחירות <img src="https://flagcdn.com/il.svg" alt="Israel Flag" style={{ width: '45px', verticalAlign: 'middle', borderRadius: '2px', border: '1px solid #cbd5e1' }} /></h1>
 
           {!isCreated ? (
             <form onSubmit={handleCreateEvent}>

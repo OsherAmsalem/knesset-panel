@@ -227,7 +227,7 @@ export default function StudentView() {
       <div className="student-app">
         
         <div style={{ textAlign: 'center', marginBottom: '25px' }}>
-          <div style={{ fontSize: '70px', marginBottom: '10px' }}>🇮🇱</div>
+          <img src="https://flagcdn.com/il.svg" alt="Israel Flag" style={{ width: '80px', marginBottom: '10px', borderRadius: '4px', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }} />
           <h2 className="main-title">פאנל בחירות</h2>
           {schoolName && <h4 style={{ fontSize: '24px', margin: 0 }}>{schoolName}</h4>}
         </div>
