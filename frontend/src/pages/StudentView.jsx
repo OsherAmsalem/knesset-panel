@@ -105,8 +105,13 @@ export default function StudentView() {
     } else {
       setVotedPhases({});
     }
+    let userId = localStorage.getItem('student_user_id');
+    if (!userId) {
+      userId = 'user_' + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem('student_user_id', userId);
+    }
 
-    socket.emit('join_event', { eventCode: code, role: 'student' });
+    socket.emit('join_event', { eventCode: code, role: 'student', userId });  
   };
 
   const handleWarmupVote = (rep) => socket.emit('submit_warmup', { eventCode, userId, representative: rep });
