@@ -182,7 +182,7 @@ export default function AdminView() {
               {[1, 2, 3, 4, 5, 6].map(num => (
                 <button 
                   key={num} 
-                  className={`btn btn-phase ${phase === \`round\${num}\` ? 'active' : ''}`} 
+                  className={`btn btn-phase ${phase === 'round' + num ? 'active' : ''}`} 
                   onClick={() => changePhase(`round${num}`)}
                 >
                   סבב {num}: {ROUND_TITLES[num]}
