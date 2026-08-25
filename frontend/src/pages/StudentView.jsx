@@ -53,11 +53,28 @@ export default function StudentView() {
   const [schoolName, setSchoolName] = useState('');
   const [representatives, setRepresentatives] = useState([]);
   const [phase, setPhase] = useState('waiting');
-  const [isVotingOpen, setIsVotingOpen] = useState(true); // קליטת מצב ההצבעה מהשרת
+  const [isVotingOpen, setIsVotingOpen] = useState(true); 
   
   const [votedPhases, setVotedPhases] = useState({});
-  const [userId] = useState(() => 'user_' + Math.random().toString(36).substr(2, 9));
+  
+  // 1. אבטחה: יצירה ושמירה של תעודת זהות קבועה לדפדפן הזה
+  const [userId] = useState(() => {
+    let savedId = localStorage.getItem('knesset_userId');
+    if (!savedId) {
+      savedId = 'user_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('knesset_userId', savedId);
+    }
+    return savedId;
+  });
+
   const [summaryAnswers, setSummaryAnswers] = useState({ q1: '', q2: '', q3: '', q4: '', q5: '' });
+
+  // 2. אבטחה: שמירה מקומית בכל פעם שהתלמיד מצביע בשלב מסוים
+  useEffect(() => {
+    if (eventCode && Object.keys(votedPhases).length > 0) {
+      localStorage.setItem(`knesset_voted_${eventCode}`, JSON.stringify(votedPhases));
+    }
+  }, [votedPhases, eventCode]);
 
   useEffect(() => {
     const handleStateUpdate = (data) => {
@@ -78,8 +95,18 @@ export default function StudentView() {
 
   const handleJoin = (e) => {
     e.preventDefault();
-    if (!eventCode.trim()) return;
-    socket.emit('join_event', { eventCode: eventCode.trim(), role: 'student' });
+    const code = eventCode.trim();
+    if (!code) return;
+    
+    // 3. אבטחה: ברגע שהוא חוזר אחרי רענון, טוענים מהזיכרון את ההיסטוריה שלו
+    const savedVoted = localStorage.getItem(`knesset_voted_${code}`);
+    if (savedVoted) {
+      setVotedPhases(JSON.parse(savedVoted));
+    } else {
+      setVotedPhases({});
+    }
+
+    socket.emit('join_event', { eventCode: code, role: 'student' });
   };
 
   const handleWarmupVote = (rep) => socket.emit('submit_warmup', { eventCode, userId, representative: rep });
@@ -128,7 +155,6 @@ export default function StudentView() {
             ) : phase === 'waiting' ? (
               renderStatusCard('⏳', 'ממתינים שנתחיל', 'המסך יתעדכן אוטומטית כשהמנחה יפתח את הפאנל.')
             ) : !isVotingOpen ? (
-              /* המסך החדש כשנועלים את ההצבעה */
               renderStatusCard('⏸️', 'ההצבעה מושהית', 'המנחה עצר כרגע את ההצבעה, אנא המתן.')
             ) : (
               <>
