@@ -20,6 +20,11 @@ const events = {};
 io.on('connection', (socket) => {
   
   socket.on('create_event', ({ eventCode, schoolName, representatives }) => {
+    // בדיקה אם הקוד שהמנחה בחר כבר תפוס
+    if (events[eventCode]) {
+      return socket.emit('error_message', 'קוד אירוע זה כבר קיים במערכת. אנא בחר קוד אחר.');
+    }
+
     events[eventCode] = {
       schoolName,
       representatives,
@@ -50,6 +55,17 @@ io.on('connection', (socket) => {
 
     socket.join(eventCode);
     socket.join(`${eventCode}_admin`);
+    socket.emit('admin_joined_success', eventCode); // שולח אישור שהיצירה הצליחה
+  });
+
+  // התחברות של מנהל נוסף לאירוע קיים
+  socket.on('join_admin', ({ eventCode }) => {
+    const event = events[eventCode];
+    if (!event) return socket.emit('error_message', 'קוד אירוע לא נמצא. ודא שהאירוע נוצר.');
+    
+    socket.join(`${eventCode}_admin`);
+    socket.emit('admin_joined_success', eventCode);
+    socket.emit('live_results', getEventState(event));
   });
 
   socket.on('join_event', ({ eventCode, role }) => {
@@ -120,7 +136,6 @@ io.on('connection', (socket) => {
     socket.emit('vote_confirmed');
   });
 
-  // פקודה חדשה: איפוס הנתונים הארציים
   socket.on('reset_global_stats', ({ eventCode }) => {
     globalStats.parties = {};
     globalStats.opinionChange = { 'חיזק את דעתי': 0, 'החליש (ערער את דעתי)': 0, 'לא שינה את דעתי': 0 };

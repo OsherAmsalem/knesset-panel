@@ -17,19 +17,15 @@ const styles = `
 
   .admin-app { min-height: 100vh; background: #f0f4f8; font-family: 'Rubik', sans-serif; direction: rtl; padding: 40px 20px; color: #333; position: relative; }
   
-  /* עיצוב הלוגו בפינה */
-  .company-logo {
-    position: absolute;
-    top: 25px;
-    left: 30px;
-    width: 80px;
-    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.15));
-    z-index: 100;
-  }
-
+  .company-logo { position: absolute; top: 25px; left: 30px; width: 80px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.15)); z-index: 100; }
   .admin-container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; z-index: 10; }
   h1 { text-align: center; color: #1756a9; font-size: 36px; margin-bottom: 30px; }
-  h2 { color: #1756a9; margin-bottom: 20px; border-bottom: 2px solid #e1e8f0; padding-bottom: 10px; }
+  
+  /* עיצוב הטאבים החדשים */
+  .tabs { display: flex; margin-bottom: 30px; border-bottom: 2px solid #e1e8f0; }
+  .tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; font-size: 20px; font-weight: bold; color: #64748b; transition: 0.3s; }
+  .tab.active { color: #1756a9; border-bottom: 4px solid #1756a9; }
+  .tab:hover:not(.active) { color: #0ea5e9; }
 
   .form-group { margin-bottom: 25px; }
   label { display: block; font-weight: 600; margin-bottom: 10px; font-size: 18px; }
@@ -38,6 +34,8 @@ const styles = `
 
   .btn { background: #1756a9; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-size: 20px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: 'Rubik', sans-serif; }
   .btn:hover { background: #0ea5e9; transform: translateY(-2px); }
+  .btn-join { background: #10b981; }
+  .btn-join:hover { background: #059669; }
   
   .btn-phase { display: block; width: 100%; margin-bottom: 15px; background: #0ea5e9; }
   .btn-phase.active { background: #10b981; pointer-events: none; }
@@ -72,17 +70,28 @@ const styles = `
 
 export default function AdminView() {
   const [isCreated, setIsCreated] = useState(false);
-  const [eventCode, setEventCode] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
+  const [viewMode, setViewMode] = useState('create'); // 'create' או 'join'
+  
+  const [eventCode, setEventCode] = useState('');
+  const [joinCode, setJoinCode] = useState('');
   const [schoolName, setSchoolName] = useState('');
   const [repsInput, setRepsInput] = useState('');
   
   const [participants, setParticipants] = useState(0);
   const [phase, setPhase] = useState('waiting'); 
-  
   const [summaryResults, setSummaryResults] = useState(null);
   const [globalStats, setGlobalStats] = useState(null);
 
   useEffect(() => {
+    socket.on('admin_joined_success', (code) => {
+      setEventCode(code);
+      setIsCreated(true);
+    });
+
+    socket.on('error_message', (msg) => {
+      alert(msg);
+    });
+
     const handleDataUpdate = (data) => {
       setParticipants(data.participants);
       setPhase(data.phase);
@@ -99,6 +108,8 @@ export default function AdminView() {
     });
 
     return () => {
+      socket.off('admin_joined_success');
+      socket.off('error_message');
       socket.off('live_results');
       socket.off('event_state');
       socket.off('phase_changed');
@@ -108,13 +119,18 @@ export default function AdminView() {
 
   const handleCreateEvent = (e) => {
     e.preventDefault();
-    if (!schoolName || !repsInput) return alert('נא למלא את כל השדות');
+    if (!eventCode || !schoolName || !repsInput) return alert('נא למלא את כל השדות');
     
     const representatives = repsInput.split(',').map(r => r.trim()).filter(r => r !== '');
     if (representatives.length < 2) return alert('יש להזין לפחות 2 נציגים מופרדים בפסיק');
 
-    socket.emit('create_event', { eventCode, schoolName, representatives });
-    setIsCreated(true);
+    socket.emit('create_event', { eventCode: eventCode.trim(), schoolName, representatives });
+  };
+
+  const handleJoinAdmin = (e) => {
+    e.preventDefault();
+    if (!joinCode) return alert('נא להזין קוד אירוע');
+    socket.emit('join_admin', { eventCode: joinCode.trim() });
   };
 
   const changePhase = (newPhase) => {
@@ -157,17 +173,44 @@ export default function AdminView() {
           <h1>מערכת ניהול פאנל בחירות <img src="https://flagcdn.com/il.svg" alt="Israel Flag" style={{ width: '45px', verticalAlign: 'middle', borderRadius: '2px', border: '1px solid #cbd5e1' }} /></h1>
 
           {!isCreated ? (
-            <form onSubmit={handleCreateEvent}>
-              <div className="form-group">
-                <label>שם בית הספר / מוסד:</label>
-                <input type="text" value={schoolName} onChange={e => setSchoolName(e.target.value)} placeholder="לדוגמה: תיכון בליך" />
+            <div>
+              <div className="tabs">
+                <div className={`tab ${viewMode === 'create' ? 'active' : ''}`} onClick={() => setViewMode('create')}>
+                  ✨ יצירת פאנל חדש
+                </div>
+                <div className={`tab ${viewMode === 'join' ? 'active' : ''}`} onClick={() => setViewMode('join')}>
+                  🔑 התחברות כמנהל
+                </div>
               </div>
-              <div className="form-group">
-                <label>נציגי הפאנל (מופרדים בפסיק):</label>
-                <input type="text" value={repsInput} onChange={e => setRepsInput(e.target.value)} placeholder="לדוגמה: יריב לוין, יאיר לפיד, איתמר בן גביר" />
-              </div>
-              <button type="submit" className="btn" style={{ width: '100%' }}>צור פאנל חדש</button>
-            </form>
+
+              {viewMode === 'create' ? (
+                <form onSubmit={handleCreateEvent}>
+                  <div className="form-group">
+                    <label>קוד אירוע מותאם אישית (יופץ לתלמידים):</label>
+                    <input type="text" value={eventCode} onChange={e => setEventCode(e.target.value)} placeholder="לדוגמה: 1234, GORDON2026..." />
+                    <div className="help-text">* בחר קוד ייחודי קל לזכירה</div>
+                  </div>
+                  <div className="form-group">
+                    <label>שם בית הספר / מוסד:</label>
+                    <input type="text" value={schoolName} onChange={e => setSchoolName(e.target.value)} placeholder="לדוגמה: תיכון בליך" />
+                  </div>
+                  <div className="form-group">
+                    <label>נציגי הפאנל (מופרדים בפסיק):</label>
+                    <input type="text" value={repsInput} onChange={e => setRepsInput(e.target.value)} placeholder="לדוגמה: יריב לוין, יאיר לפיד, איתמר בן גביר" />
+                  </div>
+                  <button type="submit" className="btn" style={{ width: '100%' }}>צור פאנל חדש</button>
+                </form>
+              ) : (
+                <form onSubmit={handleJoinAdmin}>
+                  <div className="form-group">
+                    <label>הזן קוד של אירוע פעיל:</label>
+                    <input type="text" value={joinCode} onChange={e => setJoinCode(e.target.value)} placeholder="הכנס קוד אירוע" />
+                    <div className="help-text">* מיועד למנהלים ומפקחים שרוצים לראות את התוצאות מהצד בזמן אמת</div>
+                  </div>
+                  <button type="submit" className="btn btn-join" style={{ width: '100%' }}>התחבר כמנהל לאירוע</button>
+                </form>
+              )}
+            </div>
           ) : (
             <div>
               <div style={{ textAlign: 'center', marginBottom: '30px', padding: '20px', background: '#eff6ff', borderRadius: '12px' }}>
