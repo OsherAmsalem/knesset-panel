@@ -4,17 +4,26 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
-// בדיקה האם משתנה הסביבה קיים
-if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-  console.error("ERROR: FIREBASE_SERVICE_ACCOUNT is missing in Render environment variables!");
+// מנסים לטעון את משתנה הסביבה, ואם הוא לא קיים - נזהיר במקום שהשרת יקרוס
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} catch (e) {
+  console.log("WARNING: FIREBASE_SERVICE_ACCOUNT is not defined or invalid JSON!");
 }
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+if (serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://knessetpanel-default-rtdb.firebaseio.com"
+  });
+} else {
+  // מצב חירום: אם המפתח לא הגיע, השרת ירוץ בלי פיירבייס כדי שלא יקרוס, ונראה למה המשתנה ריק
+  console.log("Running server without Firebase connection due to missing credentials.");
+}
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://knessetpanel-default-rtdb.firebaseio.com"
-});
+const db = serviceAccount ? admin.database() : null;
+// (וכדי שהשרת לא ייפול בהמשך כשננסה לשמור נתונים, נוסיף בדיקה קטנה ש-db קיים)
 
 const db = admin.database();
 const eventsRef = db.ref('events');
