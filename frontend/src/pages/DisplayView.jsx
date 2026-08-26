@@ -35,7 +35,7 @@ const styles = `
     position: relative;
   }
 
-  /* עיצוב הלוגו בפינה */
+  /* עיצוב הלוגו בפינה השמאלית */
   .company-logo {
     position: absolute;
     top: 30px;
@@ -43,6 +43,34 @@ const styles = `
     width: 120px;
     filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
     z-index: 100;
+  }
+
+  /* תג קוד התחברות בפינה הימנית (אדום זכוכית) */
+  .event-code-badge {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+    background: rgba(220, 38, 38, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 120, 120, 0.5);
+    padding: 12px 25px;
+    border-radius: 20px;
+    font-size: 34px;
+    font-weight: 800;
+    color: white;
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+    z-index: 100;
+    text-align: center;
+    letter-spacing: 3px;
+  }
+  .event-code-badge span {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: normal;
+    margin-bottom: 2px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
 
   .join-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; margin-top: 100px; }
@@ -136,7 +164,6 @@ export default function DisplayView() {
     const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]);
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
     
-    // חישוב סך הכל הקולות כדי לגזור את האחוזים
     const totalVotes = items.reduce((sum, item) => sum + item[1], 0);
 
     return items.map(([name, votes]) => {
@@ -157,10 +184,8 @@ export default function DisplayView() {
   const renderMiniChart = (dataObj) => {
     if(!dataObj || Object.keys(dataObj).length === 0) return <div style={{ opacity: 0.5, textAlign: 'center' }}>אין נתונים עדיין</div>;
     
-    // חישוב סך הכל הקולות (על כל האופציות, לא רק על הטופ 5)
     const totalVotes = Object.values(dataObj).reduce((sum, val) => sum + val, 0);
     
-    // חיתוך ל-5 המקומות הראשונים
     const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]).slice(0, 5); 
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
 
@@ -184,6 +209,13 @@ export default function DisplayView() {
       <style>{styles}</style>
       <div className="display-app">
         <img src="/image_a4f483.png" alt="אקטיביטיז הפקות" className="company-logo" />
+        
+        {/* תגית קוד האירוע - בולטת באדום זכוכית בפינה הימנית */}
+        <div className="event-code-badge">
+          <span>קוד התחברות:</span>
+          {inputCode}
+        </div>
+
         <div className="header">
           <h1>פאנל בחירות <img src="https://flagcdn.com/il.svg" alt="Israel Flag" style={{ width: '60px', verticalAlign: 'middle', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)' }} /></h1>
           <h2>{schoolName}</h2>
