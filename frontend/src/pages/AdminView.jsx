@@ -70,6 +70,9 @@ const styles = `
   
   .btn-reset { width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.2s; font-family: 'Rubik', sans-serif; }
   .btn-reset:hover { background: #dc2626; }
+
+  .btn-export { width: 100%; padding: 18px; background: #8b5cf6; color: white; border: none; border-radius: 12px; font-size: 22px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.2s; font-family: 'Rubik', sans-serif; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4); }
+  .btn-export:hover { background: #7c3aed; transform: translateY(-2px); }
 `;
 
 export default function AdminView() {
@@ -170,6 +173,56 @@ export default function AdminView() {
   };
 
   const getAvg = (sum, count) => count > 0 ? (sum / count).toFixed(1) : 0;
+
+  // הפונקציה החדשה ליצירת הקובץ CSV
+  const exportToCSV = () => {
+    if (!globalStats) return;
+
+    // הקידוד המיוחד שמונע ג'יבריש באקסל
+    let csvContent = "\uFEFF"; 
+    
+    csvContent += "דוח נתונים ארציים - פאנל בחירות\n\n";
+    
+    // סקשן 1: מפלגות מועדפות
+    csvContent += "מפלגות מועדפות - ארצי\n";
+    csvContent += "מפלגה,קולות\n";
+    if (globalStats.parties) {
+      Object.entries(globalStats.parties)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([party, votes]) => {
+          csvContent += `"${party}",${votes}\n`;
+        });
+    }
+    csvContent += "\n";
+
+    // סקשן 2: שינוי דעה
+    csvContent += "השפעת הפאנל (שינוי דעה) - ארצי\n";
+    csvContent += "תשובה,קולות\n";
+    if (globalStats.opinionChange) {
+      Object.entries(globalStats.opinionChange)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([opinion, votes]) => {
+          csvContent += `"${opinion}",${votes}\n`;
+        });
+    }
+    csvContent += "\n";
+
+    // סקשן 3: ממוצע ציון
+    csvContent += "ממוצע ציון פאנלים ארצי\n";
+    const avgScore = getAvg(globalStats.panelRating.sum, globalStats.panelRating.count);
+    csvContent += `ציון,${avgScore}\n`;
+
+    // יצירת הקובץ והורדתו
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    // שם הקובץ יכלול את התאריך של היום
+    link.setAttribute("download", `National_Panel_Stats_${new Date().toLocaleDateString('he-IL').replace(/\./g, '-')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const renderMiniChart = (dataObj, colorClass = '') => {
     if(!dataObj || Object.keys(dataObj).length === 0) return <div style={{ opacity: 0.5 }}>אין נתונים</div>;
@@ -333,6 +386,13 @@ export default function AdminView() {
                         </div>
                       </div>
                     </div>
+                  )}
+
+                  {/* כפתור הייצוא החדש! יופיע רק כשההצבעה נעולה בשלב הסיכום */}
+                  {!isVotingOpen && globalStats && (
+                    <button className="btn-export" onClick={exportToCSV}>
+                      📊 ייצוא נתונים ארציים לאקסל (CSV)
+                    </button>
                   )}
 
                   <button className="btn-reset" onClick={handleResetGlobalStats}>
