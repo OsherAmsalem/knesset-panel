@@ -57,7 +57,6 @@ export default function StudentView() {
   
   const [votedPhases, setVotedPhases] = useState({});
   
-  // תיקון טכני לשמירת השלב הנוכחי עבור השרת מבלי להתנתק
   const phaseRef = useRef(phase);
   useEffect(() => {
     phaseRef.current = phase;
@@ -74,14 +73,12 @@ export default function StudentView() {
 
   const [summaryAnswers, setSummaryAnswers] = useState({ q1: '', q2: '', q3: '', q4: '', q5: '' });
 
-  // תיקון הזיכרון: משתמשים ב-sessionStorage כדי שלא יזכור הצבעות ישנות מטסטים קודמים
   useEffect(() => {
     if (eventCode && Object.keys(votedPhases).length > 0) {
       sessionStorage.setItem(`knesset_voted_${eventCode}`, JSON.stringify(votedPhases));
     }
   }, [votedPhases, eventCode]);
 
-  // תיקון הניתוקים: מערך תלויות ריק [] מבטיח שההאזנה לשרת יציבה ולא מתנתקת באמצע
   useEffect(() => {
     const handleStateUpdate = (data) => {
       setSchoolName(data.schoolName);
@@ -109,7 +106,6 @@ export default function StudentView() {
     const code = eventCode.trim();
     if (!code) return;
     
-    // קוראים מזיכרון זמני בלבד
     const savedVoted = sessionStorage.getItem(`knesset_voted_${code}`);
     if (savedVoted) {
       setVotedPhases(JSON.parse(savedVoted));
@@ -131,7 +127,27 @@ export default function StudentView() {
     const roundId = phase.replace('round', '');
     socket.emit('submit_round_vote', { eventCode, userId, roundId, representative: rep });
   };
-  const handleSummarySubmit = () => socket.emit('submit_summary', { eventCode, userId, answers: summaryAnswers });
+  
+  // פונקציית הקונפטי המיוחדת
+  const triggerConfetti = () => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+    script.onload = () => {
+      window.confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#0ea5e9', '#3b82f6', '#ffffff', '#bae6fd'],
+        disableForReducedMotion: true
+      });
+    };
+    document.body.appendChild(script);
+  };
+
+  const handleSummarySubmit = () => {
+    socket.emit('submit_summary', { eventCode, userId, answers: summaryAnswers });
+    triggerConfetti(); // מפעיל את הקונפטי ברגע השליחה
+  };
 
   const isSummaryComplete = Object.values(summaryAnswers).every(answer => answer !== '');
   const hasVotedCurrent = votedPhases[phase];
