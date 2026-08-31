@@ -21,6 +21,18 @@ const styles = `
     100% { background-position: 0% 50%; }
   }
 
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+  }
+
+  @keyframes pulseSoft {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+
   .display-app {
     min-height: 100vh;
     background: linear-gradient(-45deg, #0a2342, #1756a9, #3b82f6, #0ea5e9);
@@ -84,6 +96,13 @@ const styles = `
   h1 { font-size: 60px; margin: 0 0 10px 0; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
   h2 { font-size: 36px; margin: 0; color: #e2e8f0; text-shadow: 0 1px 5px rgba(0,0,0,0.2); }
   .phase-title { font-size: 48px; color: #ffffff; margin-bottom: 30px; text-align: center; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+  /* עיצוב מסך ברוכים הבאים */
+  .welcome-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; margin-top: 50px; }
+  .welcome-card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 30px; padding: 60px; text-align: center; max-width: 800px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.1); animation: float 6s ease-in-out infinite; }
+  .welcome-icon { font-size: 100px; margin-bottom: 20px; animation: pulseSoft 3s infinite; }
+  .welcome-title { font-size: 65px; font-weight: 800; margin: 0 0 15px 0; background: linear-gradient(to right, #ffffff, #bae6fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+  .welcome-subtitle { font-size: 32px; color: #e2e8f0; margin: 0; font-weight: 600; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
 
   .bar-row { display: flex; align-items: center; margin-bottom: 25px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
   .bar-label { width: 250px; font-size: 28px; font-weight: bold; padding-left: 20px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
@@ -221,7 +240,16 @@ export default function DisplayView() {
           <h2>{schoolName}</h2>
         </div>
 
-        {phase === 'waiting' && <h2 style={{ textAlign: 'center', fontSize: '50px', marginTop: '100px' }}>הפאנל יתחיל בעוד מספר רגעים...</h2>}
+        {/* מסך ברוכים הבאים המחודש */}
+        {phase === 'waiting' && (
+          <div className="welcome-container">
+            <div className="welcome-card">
+              <div className="welcome-icon">✨</div>
+              <h2 className="welcome-title">ברוכים הבאים לפאנל!</h2>
+              <p className="welcome-subtitle">התחברו באמצעות הקוד בפינה, מתחילים בעוד רגע...</p>
+            </div>
+          </div>
+        )}
         
         {phase === 'warmup' && (
           <div>
