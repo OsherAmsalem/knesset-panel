@@ -57,7 +57,7 @@ const styles = `
     z-index: 100;
   }
 
-  /* תג קוד התחברות בפינה הימנית (אדום זכוכית) */
+  /* תג קוד התחברות בפינה הימנית */
   .event-code-badge {
     position: absolute;
     top: 30px;
@@ -97,13 +97,23 @@ const styles = `
   h2 { font-size: 36px; margin: 0; color: #e2e8f0; text-shadow: 0 1px 5px rgba(0,0,0,0.2); }
   .phase-title { font-size: 48px; color: #ffffff; margin-bottom: 30px; text-align: center; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-  /* עיצוב מסך ברוכים הבאים */
+  /* מסך ברוכים הבאים */
   .welcome-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; margin-top: 50px; }
   .welcome-card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 30px; padding: 60px; text-align: center; max-width: 800px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.1); animation: float 6s ease-in-out infinite; }
   .welcome-icon { font-size: 100px; margin-bottom: 20px; animation: pulseSoft 3s infinite; }
   .welcome-title { font-size: 65px; font-weight: 800; margin: 0 0 15px 0; background: linear-gradient(to right, #ffffff, #bae6fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 4px 15px rgba(0,0,0,0.2); }
   .welcome-subtitle { font-size: 32px; color: #e2e8f0; margin: 0; font-weight: 600; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
 
+  /* מסך הצבעה בלייב (הסתרת תוצאות) */
+  .voting-active-card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 30px; padding: 50px; text-align: center; max-width: 700px; margin: 0 auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: float 6s ease-in-out infinite; }
+  .voting-icon { font-size: 80px; margin-bottom: 20px; animation: pulseSoft 2s infinite; }
+  .voting-title { font-size: 50px; font-weight: 800; color: white; margin: 0 0 10px 0; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  .voting-subtitle { font-size: 30px; color: #bae6fd; margin-bottom: 40px; }
+  .voting-count-box { background: rgba(0,0,0,0.2); border-radius: 20px; padding: 40px; border: 1px solid rgba(255,255,255,0.1); }
+  .voting-count-number { font-size: 110px; font-weight: 900; background: linear-gradient(to right, #38bdf8, #ffffff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-bottom: 10px; text-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+  .voting-count-label { font-size: 32px; color: white; font-weight: 600; }
+
+  /* גרפים */
   .bar-row { display: flex; align-items: center; margin-bottom: 25px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
   .bar-label { width: 250px; font-size: 28px; font-weight: bold; padding-left: 20px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
   .bar-track { flex-grow: 1; background: rgba(255,255,255,0.15); height: 50px; border-radius: 25px; position: relative; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
@@ -176,13 +186,29 @@ export default function DisplayView() {
     );
   }
 
-  const { schoolName, phase, warmupResults, rounds, summaryResults } = eventData;
+  // חילצנו פה גם את isVotingOpen מהשרת
+  const { schoolName, phase, warmupResults, rounds, summaryResults, isVotingOpen } = eventData;
+
+  // פונקציית עזר שתפקידה לחשב כמה הצבעות התקבלו עד עכשיו בשלב הנוכחי
+  const getActiveVoteCount = () => {
+    if (phase === 'warmup' && warmupResults) {
+      return Object.values(warmupResults).reduce((sum, val) => sum + val, 0);
+    }
+    if (phase.startsWith('round') && rounds) {
+      const roundNum = phase.replace('round', '');
+      const results = rounds[roundNum]?.results;
+      if (results) return Object.values(results).reduce((sum, val) => sum + val, 0);
+    }
+    if (phase === 'summary' && summaryResults && summaryResults.q1) {
+      return Object.values(summaryResults.q1).reduce((sum, val) => sum + val, 0);
+    }
+    return 0;
+  };
 
   const renderBigChart = (dataObj) => {
     if(!dataObj) return null;
     const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]);
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
-    
     const totalVotes = items.reduce((sum, item) => sum + item[1], 0);
 
     return items.map(([name, votes]) => {
@@ -202,9 +228,7 @@ export default function DisplayView() {
 
   const renderMiniChart = (dataObj) => {
     if(!dataObj || Object.keys(dataObj).length === 0) return <div style={{ opacity: 0.5, textAlign: 'center' }}>אין נתונים עדיין</div>;
-    
     const totalVotes = Object.values(dataObj).reduce((sum, val) => sum + val, 0);
-    
     const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]).slice(0, 5); 
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
 
@@ -229,7 +253,6 @@ export default function DisplayView() {
       <div className="display-app">
         <img src="/image_a4f483.png" alt="אקטיביטיז הפקות" className="company-logo" />
         
-        {/* תגית קוד האירוע - בולטת באדום זכוכית בפינה הימנית */}
         <div className="event-code-badge">
           <span>קוד התחברות:</span>
           {inputCode}
@@ -240,7 +263,7 @@ export default function DisplayView() {
           <h2>{schoolName}</h2>
         </div>
 
-        {/* מסך ברוכים הבאים המחודש */}
+        {/* 1. מסך ברוכים הבאים */}
         {phase === 'waiting' && (
           <div className="welcome-container">
             <div className="welcome-card">
@@ -250,46 +273,66 @@ export default function DisplayView() {
             </div>
           </div>
         )}
+
+        {/* 2. מסך "ההצבעה בעיצומה" - מופיע לכל שאלה שהיא כל עוד המנחה לא נעל הצבעה */}
+        {phase !== 'waiting' && isVotingOpen && (
+          <div className="welcome-container">
+            <div className="voting-active-card">
+              <div className="voting-icon">📊</div>
+              <h2 className="voting-title">ההצבעה פתוחה!</h2>
+              <p className="voting-subtitle">מחכים להצבעות שלכם במכשירים...</p>
+              <div className="voting-count-box">
+                <div className="voting-count-number">{getActiveVoteCount()}</div>
+                <div className="voting-count-label">תלמידים כבר הצביעו</div>
+              </div>
+            </div>
+          </div>
+        )}
         
-        {phase === 'warmup' && (
-          <div>
-            <div className="phase-title">שאלת חימום: את מי הכי מעניין אותך לשמוע?</div>
-            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-              {renderBigChart(warmupResults)}
-            </div>
-          </div>
-        )}
+        {/* 3. חשיפת התוצאות - רק כשהמנחה נעל את ההצבעה (isVotingOpen === false) */}
+        {phase !== 'waiting' && !isVotingOpen && (
+          <>
+            {phase === 'warmup' && (
+              <div>
+                <div className="phase-title">תוצאות שאלת חימום: את מי הכי מעניין אותך לשמוע?</div>
+                <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+                  {renderBigChart(warmupResults)}
+                </div>
+              </div>
+            )}
 
-        {phase.startsWith('round') && (
-          <div>
-            <div className="phase-title">
-              סבב {phase.replace('round', '')}: {ROUND_TITLES[phase.replace('round', '')]}
-              <br/><span style={{ fontSize: '30px', color: '#e2e8f0' }}>מי מהנציגים ניצח בסבב הזה?</span>
-            </div>
-            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-              {renderBigChart(rounds[phase.replace('round', '')]?.results)}
-            </div>
-          </div>
-        )}
+            {phase.startsWith('round') && (
+              <div>
+                <div className="phase-title">
+                  תוצאות סבב {phase.replace('round', '')}: {ROUND_TITLES[phase.replace('round', '')]}
+                  <br/><span style={{ fontSize: '30px', color: '#e2e8f0' }}>מי מהנציגים ניצח בסבב הזה?</span>
+                </div>
+                <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+                  {renderBigChart(rounds[phase.replace('round', '')]?.results)}
+                </div>
+              </div>
+            )}
 
-        {phase === 'summary' && (
-          <div>
-            <div className="phase-title">תוצאות הפאנל ב{schoolName}</div>
-            <div className="summary-grid">
-              <div className="summary-box">
-                <h3>המנצח של הפאנל</h3>
-                {renderMiniChart(summaryResults.q1)}
+            {phase === 'summary' && (
+              <div>
+                <div className="phase-title">תוצאות הפאנל ב{schoolName}</div>
+                <div className="summary-grid">
+                  <div className="summary-box">
+                    <h3>המנצח של הפאנל</h3>
+                    {renderMiniChart(summaryResults.q1)}
+                  </div>
+                  <div className="summary-box">
+                    <h3>מפלגות מועדפות</h3>
+                    {renderMiniChart(summaryResults.q2)}
+                  </div>
+                  <div className="summary-box">
+                    <h3>השפעת הפאנל</h3>
+                    {renderMiniChart(summaryResults.q3)}
+                  </div>
+                </div>
               </div>
-              <div className="summary-box">
-                <h3>מפלגות מועדפות</h3>
-                {renderMiniChart(summaryResults.q2)}
-              </div>
-              <div className="summary-box">
-                <h3>השפעת הפאנל</h3>
-                {renderMiniChart(summaryResults.q3)}
-              </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
       </div>
     </>
