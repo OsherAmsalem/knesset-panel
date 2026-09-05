@@ -12,11 +12,12 @@ const ROUND_TITLES = {
   6: 'שיטת הממשל'
 };
 
+// הרשימה המעודכנת לפי הדרישות החדשות
 const PARTIES_LIST = [
   'הליכוד', 'ישר', 'ביחד', 'הדמוקרטים', 'עוצמה יהודית',
-  'הציונות הדתית', 'יהדות התורה', 'שס', 'רעמ',
+  'הציונות הדתית וזהות', 'יהדות התורה', 'שס', 'רעמ',
   'הרשימה המשותפת', 'ישראל ביתנו', 'בית ציוני', 'כחול לבן',
-  'האחדות', 'זהות', 'ישראל תחילה', 'עמך ישראל', 'רשימה אחרת'
+  'ישראל תחילה', 'עמך ישראל', 'רשימה אחרת'
 ];
 
 const styles = `
@@ -128,7 +129,6 @@ export default function StudentView() {
     socket.emit('submit_round_vote', { eventCode, userId, roundId, representative: rep });
   };
   
-  // פונקציית הקונפטי המיוחדת
   const triggerConfetti = () => {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
@@ -146,7 +146,7 @@ export default function StudentView() {
 
   const handleSummarySubmit = () => {
     socket.emit('submit_summary', { eventCode, userId, answers: summaryAnswers });
-    triggerConfetti(); // מפעיל את הקונפטי ברגע השליחה
+    triggerConfetti(); 
   };
 
   const isSummaryComplete = Object.values(summaryAnswers).every(answer => answer !== '');
