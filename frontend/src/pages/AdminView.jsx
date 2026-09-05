@@ -58,8 +58,8 @@ const styles = `
   .rating-box { background: #fef3c7; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #fde68a; }
   .rating-number { font-size: 48px; font-weight: 800; color: #d97706; }
 
-  .global-stats-container { background: #ecfdf5; padding: 20px; border-radius: 15px; border: 1px solid #a7f3d0; margin-top: 20px; }
-  .global-title { color: #059669; font-size: 22px; text-align: center; margin-bottom: 20px; font-weight: bold; }
+  .local-stats-container { background: #ecfdf5; padding: 20px; border-radius: 15px; border: 1px solid #a7f3d0; margin-top: 20px; }
+  .local-title { color: #059669; font-size: 22px; text-align: center; margin-bottom: 20px; font-weight: bold; }
 
   .mini-bar-row { margin-bottom: 12px; }
   .mini-bar-label { font-size: 16px; margin-bottom: 4px; font-weight: bold; color: #333; }
@@ -67,9 +67,6 @@ const styles = `
   .mini-bar-fill { height: 100%; background: #0ea5e9; transition: width 1s; }
   .mini-bar-fill.green { background: #10b981; }
   .mini-bar-value { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-weight: bold; color: white; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-  
-  .btn-reset { width: 100%; padding: 15px; background: #ef4444; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.2s; font-family: 'Rubik', sans-serif; }
-  .btn-reset:hover { background: #dc2626; }
 
   .btn-export { width: 100%; padding: 18px; background: #8b5cf6; color: white; border: none; border-radius: 12px; font-size: 22px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.2s; font-family: 'Rubik', sans-serif; box-shadow: 0 6px 15px rgba(139, 92, 246, 0.4); }
   .btn-export:hover { background: #7c3aed; transform: translateY(-2px); }
@@ -89,9 +86,8 @@ export default function AdminView() {
   
   const [participants, setParticipants] = useState(0);
   const [phase, setPhase] = useState('waiting'); 
-  const [isVotingOpen, setIsVotingOpen] = useState(true); // שמירת סטטוס נעילה
+  const [isVotingOpen, setIsVotingOpen] = useState(true); 
   const [summaryResults, setSummaryResults] = useState(null);
-  const [globalStats, setGlobalStats] = useState(null);
 
   useEffect(() => {
     socket.on('admin_joined_success', (code) => {
@@ -106,9 +102,9 @@ export default function AdminView() {
     const handleDataUpdate = (data) => {
       setParticipants(data.participants);
       setPhase(data.phase);
-      setIsVotingOpen(data.isVotingOpen); // עדכון הסטטוס למנחה
+      setIsVotingOpen(data.isVotingOpen); 
       setSummaryResults(data.summaryResults);
-      setGlobalStats(data.globalStats);
+      if (data.schoolName) setSchoolName(data.schoolName);
     };
 
     socket.on('live_results', handleDataUpdate);
@@ -166,28 +162,29 @@ export default function AdminView() {
     socket.emit('toggle_voting', { eventCode });
   };
 
-  const handleResetGlobalStats = () => {
-    if (window.confirm('⚠️ אזהרה: פעולה זו תאפס לחלוטין את כל הנתונים הארציים שנשמרו בשרת מכל ההצבעות עד כה. האם להמשיך?')) {
-      socket.emit('reset_global_stats', { eventCode });
-    }
-  };
-
   const getAvg = (sum, count) => count > 0 ? (sum / count).toFixed(1) : 0;
 
-  // הפונקציה החדשה ליצירת הקובץ CSV
+  // פונקציית הייצוא - עכשיו מושכת נתונים רק מהאירוע הנוכחי!
   const exportToCSV = () => {
-    if (!globalStats) return;
+    if (!summaryResults) return;
 
-    // הקידוד המיוחד שמונע ג'יבריש באקסל
     let csvContent = "\uFEFF"; 
     
-    csvContent += "דוח נתונים ארציים - פאנל בחירות\n\n";
+    csvContent += `דוח נתונים - פאנל בחירות (אירוע: ${schoolName || eventCode})\n\n`;
     
-    // סקשן 1: מפלגות מועדפות
-    csvContent += "מפלגות מועדפות - ארצי\n";
-    csvContent += "מפלגה,קולות\n";
-    if (globalStats.parties) {
-      Object.entries(globalStats.parties)
+    csvContent += "1. מנצח הפאנל\nנציג,קולות\n";
+    if (summaryResults.q1) {
+      Object.entries(summaryResults.q1)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([name, votes]) => {
+          csvContent += `"${name}",${votes}\n`;
+        });
+    }
+    csvContent += "\n";
+
+    csvContent += "2. מפלגות מועדפות\nמפלגה,קולות\n";
+    if (summaryResults.q2) {
+      Object.entries(summaryResults.q2)
         .sort((a, b) => b[1] - a[1])
         .forEach(([party, votes]) => {
           csvContent += `"${party}",${votes}\n`;
@@ -195,11 +192,9 @@ export default function AdminView() {
     }
     csvContent += "\n";
 
-    // סקשן 2: שינוי דעה
-    csvContent += "השפעת הפאנל (שינוי דעה) - ארצי\n";
-    csvContent += "תשובה,קולות\n";
-    if (globalStats.opinionChange) {
-      Object.entries(globalStats.opinionChange)
+    csvContent += "3. השפעת הפאנל (שינוי דעה)\nתשובה,קולות\n";
+    if (summaryResults.q3) {
+      Object.entries(summaryResults.q3)
         .sort((a, b) => b[1] - a[1])
         .forEach(([opinion, votes]) => {
           csvContent += `"${opinion}",${votes}\n`;
@@ -207,25 +202,24 @@ export default function AdminView() {
     }
     csvContent += "\n";
 
-    // סקשן 3: ממוצע ציון
-    csvContent += "ממוצע ציון פאנלים ארצי\n";
-    const avgScore = getAvg(globalStats.panelRating.sum, globalStats.panelRating.count);
-    csvContent += `ציון,${avgScore}\n`;
+    csvContent += "4. ציוני הפעילות\nקטגוריה,ציון ממוצע\n";
+    const avgPanel = getAvg(summaryResults.q4?.sum || 0, summaryResults.q4?.count || 0);
+    const avgHost = getAvg(summaryResults.q5?.sum || 0, summaryResults.q5?.count || 0);
+    csvContent += `ציון הפאנל ממוצע,${avgPanel}\n`;
+    csvContent += `ציון המנחה ממוצע,${avgHost}\n`;
 
-    // יצירת הקובץ והורדתו
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    // שם הקובץ יכלול את התאריך של היום
-    link.setAttribute("download", `National_Panel_Stats_${new Date().toLocaleDateString('he-IL').replace(/\./g, '-')}.csv`);
+    link.setAttribute("download", `Panel_Stats_${eventCode}_${new Date().toLocaleDateString('he-IL').replace(/\./g, '-')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   const renderMiniChart = (dataObj, colorClass = '') => {
-    if(!dataObj || Object.keys(dataObj).length === 0) return <div style={{ opacity: 0.5 }}>אין נתונים</div>;
+    if(!dataObj || Object.keys(dataObj).length === 0) return <div style={{ opacity: 0.5 }}>אין נתונים עדיין</div>;
     const items = Object.entries(dataObj).sort((a, b) => b[1] - a[1]).slice(0, 5); 
     const maxVotes = Math.max(...items.map(i => i[1]), 1);
 
@@ -328,7 +322,6 @@ export default function AdminView() {
 
               <h2 style={{ marginTop: '40px' }}>שליטה בשלבי הפאנל</h2>
 
-              {/* הכפתור החדש לעצירת/פתיחת ההצבעה */}
               <button 
                 onClick={handleToggleVoting} 
                 className="btn" 
@@ -349,6 +342,7 @@ export default function AdminView() {
                 📝 סיום פאנל - הפעל שאלון סיכום
               </button>
 
+              {/* הדשבורד מציג נתונים אך ורק מהאירוע הנוכחי! */}
               {phase === 'summary' && summaryResults && (
                 <div className="private-dashboard">
                   <h3>🔒 דשבורד תוצאות חסוי (למנחה בלבד)</h3>
@@ -356,48 +350,34 @@ export default function AdminView() {
                   <div className="rating-grid">
                     <div className="rating-box">
                       <div>ציון הפאנל (באירוע הנוכחי)</div>
-                      <div className="rating-number">{getAvg(summaryResults.q4.sum, summaryResults.q4.count)}</div>
+                      <div className="rating-number">{getAvg(summaryResults.q4?.sum, summaryResults.q4?.count)}</div>
                     </div>
                     <div className="rating-box">
                       <div>ציון המנחה (באירוע הנוכחי)</div>
-                      <div className="rating-number">{getAvg(summaryResults.q5.sum, summaryResults.q5.count)}</div>
+                      <div className="rating-number">{getAvg(summaryResults.q5?.sum, summaryResults.q5?.count)}</div>
                     </div>
                   </div>
 
-                  {globalStats && (
-                    <div className="global-stats-container">
-                      <div className="global-title">🌍 נתונים ארציים (ממוצע כלל בתי הספר)</div>
-                      
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                        <div>
-                          <h4 style={{ color: '#059669', margin: '0 0 10px 0' }}>מפלגות מועדפות - ארצי</h4>
-                          {renderMiniChart(globalStats.parties, 'green')}
-                        </div>
-                        <div>
-                          <h4 style={{ color: '#059669', margin: '0 0 10px 0' }}>שינוי דעה - ארצי</h4>
-                          {renderMiniChart(globalStats.opinionChange, 'green')}
-                          
-                          <div style={{ marginTop: '20px', padding: '15px', background: '#d1fae5', borderRadius: '10px', textAlign: 'center' }}>
-                            <div style={{ fontWeight: 'bold', color: '#065f46' }}>ממוצע ציון פאנלים ארצי</div>
-                            <div style={{ fontSize: '32px', fontWeight: '800', color: '#059669' }}>
-                              {getAvg(globalStats.panelRating.sum, globalStats.panelRating.count)}
-                            </div>
-                          </div>
-                        </div>
+                  <div className="local-stats-container">
+                    <div className="local-title">📊 נתוני סיכום (אירוע נוכחי בלבד)</div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      <div>
+                        <h4 style={{ color: '#059669', margin: '0 0 10px 0' }}>מפלגות מועדפות</h4>
+                        {renderMiniChart(summaryResults.q2, 'green')}
+                      </div>
+                      <div>
+                        <h4 style={{ color: '#059669', margin: '0 0 10px 0' }}>שינוי דעה</h4>
+                        {renderMiniChart(summaryResults.q3, 'green')}
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {/* כפתור הייצוא החדש! יופיע רק כשההצבעה נעולה בשלב הסיכום */}
-                  {!isVotingOpen && globalStats && (
+                  {!isVotingOpen && (
                     <button className="btn-export" onClick={exportToCSV}>
-                      📊 ייצוא נתונים ארציים לאקסל (CSV)
+                      📊 ייצוא נתוני האירוע לאקסל (CSV)
                     </button>
                   )}
-
-                  <button className="btn-reset" onClick={handleResetGlobalStats}>
-                    🗑️ איפוס נתונים ארציים (למחיקת טסטים)
-                  </button>
                 </div>
               )}
             </div>
